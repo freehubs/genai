@@ -8,20 +8,24 @@ create table if not exists public.theme_stores (
 alter table public.theme_stores enable row level security;
 
 -- RLS: only the owner can access
-create policy if not exists "select own store"
+drop policy if exists "select own store" on public.theme_stores;
+create policy "select own store"
 on public.theme_stores for select
 using (auth.uid() = user_id);
 
-create policy if not exists "insert own store"
+drop policy if exists "insert own store" on public.theme_stores;
+create policy "insert own store"
 on public.theme_stores for insert
 with check (auth.uid() = user_id);
 
-create policy if not exists "update own store"
+drop policy if exists "update own store" on public.theme_stores;
+create policy "update own store"
 on public.theme_stores for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy if not exists "delete own store"
+drop policy if exists "delete own store" on public.theme_stores;
+create policy "delete own store"
 on public.theme_stores for delete
 using (auth.uid() = user_id);
 
