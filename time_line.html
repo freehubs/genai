@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apple 风格通用时间线</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 细腻阴影与卡片质感 */
+    .card-shadow { box-shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04); }
+    .soft-gradient { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,248,248,0.9)); }
+    .timeline-line { background-image: linear-gradient(to bottom, rgba(0,0,0,0.12), rgba(0,0,0,0.06)); }
+    .no-motion * { transition: none !important; animation: none !important; }
+    /* 进入视口时的淡入 */
+    .reveal { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in-view { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="min-h-screen bg-white text-neutral-900 antialiased">
+  <!-- 顶栏 -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-neutral-100">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
+      <div class="flex-1 flex items-center gap-2">
+        <div class="w-8 h-8 rounded-2xl bg-neutral-900 text-white grid place-items-center">⏱</div>
+        <button id="backHomeBtn" class="hidden rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">← 返回首页</button>
+        <h1 id="titleText" class="text-xl md:text-2xl font-semibold tracking-tight">Timeline</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="hidden md:flex items-center gap-2">
+          <input id="searchInput" type="search" placeholder="搜索标题/描述/标签" class="w-64 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" />
+          <div class="relative" id="tagFilterWrap">
+            <button id="tagBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">标签筛选 ▾</button>
+            <div id="tagDropdown" class="hidden absolute right-0 mt-2 w-64 rounded-2xl border border-neutral-200 bg-white p-3 card-shadow">
+              <div id="tagCheckboxes" class="max-h-56 overflow-auto space-y-1 text-sm"></div>
+              <div class="flex justify-between pt-2 text-xs text-neutral-500">
+                <button id="clearTags" class="hover:text-neutral-800">清除</button>
+                <span id="tagCount">0 已选</span>
+              </div>
+            </div>
+          </div>
+          <button id="sortBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50" aria-pressed="false" aria-label="切换排序">升序</button>
+        </div>
+        <button id="pasteBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">粘贴 JSON</button>
+        <label class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50 cursor-pointer">上传 JSON
+          <input id="fileInput" type="file" accept="application/json,.json" class="hidden" />
+        </label>
+        <button id="sampleBtn" class="rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm hover:bg-neutral-800">示例数据</button>
+        <div class="flex items-center gap-2" id="homeActions" aria-label="首页操作">
+          <button id="newThemeBtn" class="rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm hover:bg-neutral-800">新建主题</button>
+          <label class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50 cursor-pointer">导入主题集
+            <input id="importThemesInput" type="file" accept="application/json,.json" class="hidden" />
+          </label>
+          <button id="exportThemesBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">导出主题集</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 容器 -->
+  <main class="mx-auto max-w-6xl px-3 sm:px-4 md:px-6 lg:px-8 py-8">
+    <!-- 警告与状态 -->
+    <section id="statusBar" class="hidden mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3 text-sm"></section>
+
+    <!-- 首页（主题集卡片） -->
+    <section id="homeWrap" class="mt-6 hidden">
+      <div id="homeEmpty" class="rounded-2xl border border-neutral-200 soft-gradient card-shadow p-10 text-center hidden">
+        <h2 class="text-2xl font-semibold mb-2">还没有主题时间线</h2>
+        <p class="text-neutral-600 mb-6">创建你的第一个主题，或导入一个主题集。</p>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <button class="rounded-xl bg-neutral-900 text-white px-4 py-2 hover:bg-neutral-800" id="homeCreate">新建主题</button>
+          <label class="rounded-xl border border-neutral-200 bg-white px-4 py-2 hover:bg-neutral-50 cursor-pointer">导入主题集
+            <input id="homeImport" type="file" accept="application/json,.json" class="hidden" />
+          </label>
+        </div>
+      </div>
+      <div id="homeGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
+    </section>
+
+    <!-- 空态 -->
+    <section id="emptyState" class="rounded-2xl border border-neutral-200 soft-gradient card-shadow p-10 text-center">
+      <h2 class="text-2xl font-semibold mb-2">欢迎使用通用时间线</h2>
+      <p class="text-neutral-600 mb-6">支持“年份 / 年-月 / 年-月-日 / 时间区间”等任意粒度。粘贴或上传 JSON 以开始。</p>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <button class="rounded-xl bg-neutral-900 text-white px-4 py-2 hover:bg-neutral-800" id="emptySample">使用示例数据</button>
+        <button class="rounded-xl border border-neutral-200 bg-white px-4 py-2 hover:bg-neutral-50" id="emptyPaste">粘贴 JSON</button>
+        <label class="rounded-xl border border-neutral-200 bg-white px-4 py-2 hover:bg-neutral-50 cursor-pointer">上传 JSON
+          <input id="emptyFile" type="file" accept="application/json,.json" class="hidden" />
+        </label>
+      </div>
+    </section>
+
+    <!-- 时间线 -->
+    <section id="timelineWrap" class="relative mt-6 hidden">
+      <!-- 中心轴 -->
+      <div aria-hidden="true" class="timeline-line absolute left-1/2 top-0 -ml-px w-0.5 h-full rounded"></div>
+      <div id="timeline" class="space-y-8"></div>
+    </section>
+  </main>
+
+  <!-- 粘贴 JSON 对话框 -->
+  <dialog id="pasteDialog" class="rounded-2xl p-0 w-[min(90vw,800px)] card-shadow">
+    <div class="p-5 border-b border-neutral-100 flex items-center justify-between">
+      <h3 class="text-lg font-semibold">粘贴 JSON</h3>
+      <button id="closePaste" class="rounded-lg px-2 py-1 text-sm hover:bg-neutral-100">关闭</button>
+    </div>
+    <div class="p-5">
+      <textarea id="pasteArea" class="w-full h-60 rounded-xl border border-neutral-200 p-3 font-mono text-sm" placeholder='[
+  {"time": {"year": 2008, "month": 8}, "title": "示例事件", "tags": ["样例"]}
+]'></textarea>
+      <div class="flex justify-between items-center mt-3 text-sm">
+        <div class="text-neutral-500">支持时间点或区间：{"time":{"year":2020}} / {"time":{"start":{"year":1914},"end":{"year":1918}}}</div>
+        <button id="confirmPaste" class="rounded-xl bg-neutral-900 text-white px-4 py-2 hover:bg-neutral-800">导入</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 新建/编辑主题 对话框 -->
+  <dialog id="themeDialog" class="rounded-2xl p-0 w-[min(90vw,560px)] card-shadow">
+    <div class="p-5 border-b border-neutral-100 flex items-center justify-between">
+      <h3 class="text-lg font-semibold" id="themeDialogTitle">新建主题</h3>
+      <button id="closeThemeDialog" class="rounded-lg px-2 py-1 text-sm hover:bg-neutral-100">关闭</button>
+    </div>
+    <form id="themeForm" class="p-5 space-y-3">
+      <label class="block text-sm">
+        <span class="text-neutral-600">主题名称</span>
+        <input id="themeNameInput" type="text" required class="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" placeholder="例如：科学与历史" />
+      </label>
+      <label class="block text-sm">
+        <span class="text-neutral-600">简介（可选）</span>
+        <textarea id="themeDescInput" class="mt-1 w-full h-24 rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" placeholder="一句话描述该主题"></textarea>
+      </label>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" id="cancelTheme" class="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50">取消</button>
+        <button type="submit" class="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // --- Data Types (JSDoc for clarity) ---
+    /**
+     * @typedef {{year:number, month?:number, day?:number}} TimePoint
+     * @typedef {{start: TimePoint, end: TimePoint}} TimeRange
+     * @typedef {{time: TimePoint|TimeRange, title:string, description?:string, source?:string, tags?:string[]}} TimelineEvent
+     * @typedef {{id:string, name:string, description?:string, cover?:string}} TimelineThemeMeta
+     * @typedef {{meta: TimelineThemeMeta, events: TimelineEvent[]}} TimelineTheme
+     * @typedef {{order: string[], themes: Record<string, TimelineTheme>}} ThemeStore
+     */
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) document.documentElement.classList.add('no-motion');
+
+    // UI Elements
+    const timelineWrap = document.getElementById('timelineWrap');
+    const timelineEl = document.getElementById('timeline');
+    const statusBar = document.getElementById('statusBar');
+    const emptyState = document.getElementById('emptyState');
+    const homeWrap = document.getElementById('homeWrap');
+    const homeGrid = document.getElementById('homeGrid');
+    const homeEmpty = document.getElementById('homeEmpty');
+    const titleText = document.getElementById('titleText');
+
+    const searchInput = document.getElementById('searchInput');
+    const sortBtn = document.getElementById('sortBtn');
+    const tagBtn = document.getElementById('tagBtn');
+    const tagDropdown = document.getElementById('tagDropdown');
+    const tagCheckboxes = document.getElementById('tagCheckboxes');
+    const clearTagsBtn = document.getElementById('clearTags');
+    const tagCount = document.getElementById('tagCount');
+
+    const pasteBtn = document.getElementById('pasteBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const fileInput = document.getElementById('fileInput');
+    const homeActions = document.getElementById('homeActions');
+    const newThemeBtn = document.getElementById('newThemeBtn');
+    const importThemesInput = document.getElementById('importThemesInput');
+    const exportThemesBtn = document.getElementById('exportThemesBtn');
+    const backHomeBtn = document.getElementById('backHomeBtn');
+
+    const emptySample = document.getElementById('emptySample');
+    const emptyPaste = document.getElementById('emptyPaste');
+    const emptyFile = document.getElementById('emptyFile');
+
+    const pasteDialog = document.getElementById('pasteDialog');
+    const closePaste = document.getElementById('closePaste');
+    const pasteArea = document.getElementById('pasteArea');
+    const confirmPaste = document.getElementById('confirmPaste');
+    const themeDialog = document.getElementById('themeDialog');
+    const closeThemeDialog = document.getElementById('closeThemeDialog');
+    const themeForm = document.getElementById('themeForm');
+    const themeNameInput = document.getElementById('themeNameInput');
+    const themeDescInput = document.getElementById('themeDescInput');
+    const cancelTheme = document.getElementById('cancelTheme');
+    const themeDialogTitle = document.getElementById('themeDialogTitle');
+    const homeCreate = document.getElementById('homeCreate');
+    const homeImport = document.getElementById('homeImport');
+
+    // State
+    /** @type {TimelineEvent[]} */
+    let events = [];
+    let sortAsc = true;
+    let activeTags = new Set();
+    let warnings = [];
+    /** @type {ThemeStore} */
+    let themeStore = { order: [], themes: {} };
+    let currentThemeId = null;
+
+    // --- Sample Data covering year/month/day/range ---
+    const SAMPLE_DATA = [
+      {
+        time: { year: 1879, month: 3, day: 14 },
+        title: "爱因斯坦出生",
+        description: "出生于德国乌尔姆。",
+        tags: ["人物生平"]
+      },
+      {
+        time: { start: { year: 1914 }, end: { year: 1918 } },
+        title: "第一次世界大战",
+        description: "主要发生在欧洲的全球性战争。",
+        tags: ["战争", "历史"]
+      },
+      {
+        time: { year: 1905 },
+        title: "奇迹年论文",
+        description: "发表相对论与光电效应等开创性论文。",
+        source: "历史档案",
+        tags: ["科学史"]
+      },
+      {
+        time: { year: 2008, month: 8 },
+        title: "北京奥运会开幕",
+        description: "国家体育场举行开幕式。",
+        tags: ["体育", "国家历史"]
+      },
+      {
+        time: { year: 1955, month: 4, day: 18 },
+        title: "爱因斯坦逝世",
+        description: "在美国普林斯顿逝世。",
+        tags: ["人物生平"]
+      }
+    ];
+
+    const SAMPLE_THEME = {
+      meta: { id: 'sample-science-history', name: '科学与历史', description: '示例：科学与世界历史事件' },
+      events: SAMPLE_DATA
+    };
+
+    const STORE_KEY = 'timeline_themes_v1';
+
+    // --- Utilities ---
+    /** @param {TimePoint} tp */
+    function tpToNumber(tp){
+      const y=tp.year||0, m=(tp.month||1), d=(tp.day||1);
+      return y*10000 + m*100 + d; // 便于排序
+    }
+    /** @param {TimePoint} tp */
+    function formatPoint(tp){
+      const y = tp.year;
+      if (tp.day) return `${y.toString().padStart(4,'0')}-${String(tp.month||1).padStart(2,'0')}-${String(tp.day).padStart(2,'0')}`;
+      if (tp.month) return `${y.toString().padStart(4,'0')}-${String(tp.month).padStart(2,'0')}`;
+      return `${y}`;
+    }
+    /** @param {TimePoint|TimeRange} t */
+    function formatTime(t){
+      return ('start' in t && 'end' in t)
+        ? `${formatPoint(t.start)} ~ ${formatPoint(t.end)}`
+        : formatPoint(/** @type {TimePoint} */(t));
+    }
+
+    function loadThemeStore(){
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return { order: [], themes: {} };
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object') return { order: [], themes: {} };
+        if (!Array.isArray(data.order) || typeof data.themes !== 'object') return { order: [], themes: {} };
+        return /** @type {ThemeStore} */(data);
+      } catch { return { order: [], themes: {} }; }
+    }
+
+    function saveThemeStore(){
+      localStorage.setItem(STORE_KEY, JSON.stringify(themeStore));
+    }
+
+    function ensureSampleTheme(){
+      if (!themeStore.order.length){
+        themeStore.order = [SAMPLE_THEME.meta.id];
+        themeStore.themes[SAMPLE_THEME.meta.id] = SAMPLE_THEME;
+        saveThemeStore();
+      }
+    }
+
+    function createTheme(name, description){
+      const id = 'theme-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6);
+      const theme = { meta: { id, name: name.trim(), description: description?.trim() || '' }, events: [] };
+      themeStore.order.unshift(id);
+      themeStore.themes[id] = theme;
+      saveThemeStore();
+      return id;
+    }
+
+    function deleteTheme(themeId){
+      if (!(themeId in themeStore.themes)) return;
+      delete themeStore.themes[themeId];
+      themeStore.order = themeStore.order.filter(id => id !== themeId);
+      saveThemeStore();
+      if (currentThemeId === themeId) navigateToHome();
+    }
+
+    function exportThemes(){
+      const blob = new Blob([JSON.stringify(themeStore, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'timeline_themes.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // 安全生成 DOM id（支持中文，不再使用 btoa）
+    function safeId(prefix, text){
+      return prefix + '-' + encodeURIComponent(String(text)).replace(/%/g,'-');
+    }
+
+    // 将来源文本转换为可点击链接（若为 URL）
+    function linkifyOrText(src){
+      if (!src) return '';
+      const s = String(src).trim();
+      const isUrl = /^https?:\/\//i.test(s);
+      if (isUrl){
+        const safe = escapeAttr(s);
+        return `<a href="${safe}" target="_blank" rel="noopener" class="underline decoration-neutral-300 hover:decoration-neutral-800">${escapeHtml(s)}</a>`;
+      }
+      return escapeHtml(s);
+    }
+
+    /** 校验与清洗输入数据 */
+    function validateInput(raw){
+      warnings = [];
+      /** @type {TimelineEvent[]} */
+      const out = [];
+      if (!Array.isArray(raw)) throw new Error('顶层必须是数组');
+      raw.forEach((it, idx)=>{
+        const ctx = `第 ${idx+1} 条`;
+        if (!it || typeof it !== 'object') { warnings.push(`${ctx} 不是对象，已跳过`); return; }
+        if (!('time' in it)) { warnings.push(`${ctx} 缺少 time 字段，已跳过`); return; }
+        if (typeof it.title !== 'string' || !it.title.trim()) { warnings.push(`${ctx} 缺少有效 title，已跳过`); return; }
+        const cleaned = { title: it.title.trim() };
+        // time: point or range
+        const t = it.time;
+        let timeOk = false;
+        if (t && typeof t === 'object' && ('start' in t || 'year' in t)) {
+          if ('start' in t && 'end' in t) {
+            const s = t.start, e = t.end;
+            const sy = Number(s?.year), ey = Number(e?.year);
+            if (Number.isFinite(sy) && Number.isFinite(ey)) {
+              cleaned.time = {
+                start: { year: sy, month: s.month != null ? Number(s.month) : undefined, day: s.day != null ? Number(s.day) : undefined },
+                end:   { year: ey, month: e.month != null ? Number(e.month) : undefined, day: e.day != null ? Number(e.day) : undefined }
+              };
+              timeOk = true;
+            }
+          } else if ('year' in t) {
+            const y = Number(t.year);
+            if (Number.isFinite(y)){
+              cleaned.time = {
+                year: y,
+                month: t.month != null ? Number(t.month) : undefined,
+                day: t.day != null ? Number(t.day) : undefined
+              };
+              timeOk = true;
+            }
+          }
+        }
+        if (!timeOk) { warnings.push(`${ctx} 的 time 非法，已跳过`); return; }
+        if (it.description && typeof it.description === 'string') cleaned.description = it.description.trim();
+        if (it.source && typeof it.source === 'string') cleaned.source = it.source.trim();
+        if (Array.isArray(it.tags)) cleaned.tags = it.tags.filter(x=>typeof x==='string' && x.trim()).map(x=>x.trim());
+        out.push(/** @type {TimelineEvent} */(cleaned));
+      });
+      if (!out.length) throw new Error('无有效事件');
+      return out;
+    }
+
+    /** 排序 key */
+    function eventKey(ev){
+      const t = ev.time;
+      if ('start' in t && 'end' in t) return tpToNumber(t.start);
+      return tpToNumber(t);
+    }
+
+    /** 生成所有标签 */
+    function collectTags(list){
+      const set = new Set();
+      list.forEach(ev => (ev.tags||[]).forEach(tag => set.add(tag)));
+      try {
+        return Array.from(set).sort((a,b)=>a.localeCompare(b,'zh-Hans'));
+      } catch { // 某些环境不支持传入 locale
+        return Array.from(set).sort();
+      }
+    }
+
+    /** 过滤 */
+    function filterEvents(list){
+      const q = (searchInput?.value||'').trim().toLowerCase();
+      return list.filter(ev=>{
+        const hay = [ev.title, ev.description||'', (ev.tags||[]).join(' ')].join(' ').toLowerCase();
+        const hitQ = !q || hay.includes(q);
+        const hitTag = !activeTags.size || (ev.tags||[]).some(t=>activeTags.has(t));
+        return hitQ && hitTag;
+      });
+    }
+
+    // --- Rendering ---
+    function render(list){
+      // 状态条
+      if (warnings.length){
+        statusBar.classList.remove('hidden');
+        statusBar.textContent = `已跳过 ${warnings.length} 条：` + warnings.join('；');
+      } else {
+        statusBar.classList.add('hidden');
+        statusBar.textContent = '';
+      }
+
+      // 空态
+      if (!list.length){
+        timelineWrap.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+      timelineWrap.classList.remove('hidden');
+
+      // 渲染标签筛选
+      const allTags = collectTags(events);
+      tagCheckboxes.innerHTML = allTags.length ? '' : '<div class="text-neutral-400">无可用标签</div>';
+      allTags.forEach(tag=>{
+        const id = safeId('tag', tag);
+        const checked = activeTags.has(tag) ? 'checked' : '';
+        const row = document.createElement('label');
+        row.className = 'flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-neutral-50 cursor-pointer';
+        row.setAttribute('for', id);
+        row.innerHTML = `<input id="${id}" type="checkbox" class="tagChk" data-tag="${escapeAttr(tag)}" ${checked}/> <span>${escapeHtml(tag)}</span>`;
+        tagCheckboxes.appendChild(row);
+      });
+      tagCount.textContent = `${activeTags.size} 已选`;
+
+      // 排序
+      const sorted = [...list].sort((a,b)=> sortAsc ? eventKey(a)-eventKey(b) : eventKey(b)-eventKey(a));
+
+      // 渲染事件
+      timelineEl.innerHTML = '';
+      sorted.forEach((ev, idx)=>{
+        const isLeft = idx % 2 === 0;
+        const container = document.createElement('article');
+        container.className = `relative grid grid-cols-1 md:grid-cols-2 items-stretch gap-6 md:gap-10 reveal`;
+
+        // 连接到中轴的点
+        const dot = document.createElement('div');
+        dot.setAttribute('aria-hidden','true');
+        dot.className = `hidden md:block absolute left-1/2 -ml-2 top-4 w-4 h-4 rounded-full bg-neutral-900`;
+        container.appendChild(dot);
+
+        const sideA = document.createElement('div');
+        const sideB = document.createElement('div');
+        sideA.className = 'md:col-span-1';
+        sideB.className = 'md:col-span-1';
+
+        const timeHtml = `<time aria-label="时间：${formatTime(ev.time)}" class="inline-flex items-center gap-2 text-sm text-neutral-600">${formatTime(ev.time)}</time>`;
+        const tagsHtml = (ev.tags||[]).map(t=>`<span class="inline-flex items-center rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-600">${escapeHtml(t)}</span>`).join(' ');
+        const sourceHtml = ev.source ? `<div class="text-xs text-neutral-500 truncate"><span class="opacity-70">来源：</span>${linkifyOrText(ev.source)}</div>` : '';
+
+        const card = document.createElement('div');
+        card.className = 'soft-gradient rounded-2xl card-shadow p-5 md:p-6 hover:-translate-y-0.5 transition will-change-transform';
+        card.innerHTML = `
+          <div class="mb-2">${timeHtml}</div>
+          <h3 class="text-lg md:text-xl font-semibold leading-snug mb-2">${escapeHtml(ev.title)}</h3>
+          ${ev.description ? `<p class="text-neutral-700 text-sm md:text-base mb-3">${escapeHtml(ev.description)}</p>` : ''}
+          <div class="flex flex-wrap gap-2 items-center">${tagsHtml}</div>
+          ${sourceHtml}
+        `;
+
+        // 区间条（简化视觉表达）
+        const isRange = ('start' in ev.time && 'end' in ev.time);
+        const rangeBar = document.createElement('div');
+        rangeBar.setAttribute('aria-hidden','true');
+        rangeBar.className = `hidden md:block absolute left-1/2 top-4 -translate-x-1/2 w-0.5 bg-neutral-300 rounded`;
+        if (isRange){
+          // 近似高度：以年份跨度映射
+          const span = Math.max(1, Math.abs((ev.time.end.year || 0) - (ev.time.start.year || 0)));
+          rangeBar.style.height = Math.min(200, span * 24) + 'px';
+        }
+
+        if (isLeft){
+          sideA.appendChild(card);
+          sideB.innerHTML = '';
+        } else {
+          sideA.innerHTML = '';
+          sideB.appendChild(card);
+        }
+        container.appendChild(sideA);
+        container.appendChild(sideB);
+        if (isRange) container.appendChild(rangeBar);
+        timelineEl.appendChild(container);
+      });
+
+      // 进入视口动效
+      if (!prefersReduced && 'IntersectionObserver' in window){
+        const io = new IntersectionObserver((entries)=>{
+          entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in-view'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+      } else {
+        document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in-view'));
+      }
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]));
+    }
+    function escapeAttr(str){
+      return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s]));
+    }
+
+    // --- Event Handlers ---
+    function applyAndRender(newEvents){
+      events = newEvents;
+      if (currentThemeId && themeStore.themes[currentThemeId]){
+        themeStore.themes[currentThemeId].events = events;
+        saveThemeStore();
+      }
+      render(filterEvents(events));
+      buildTagDropdown();
+    }
+
+    function buildTagDropdown(){
+      // 重新绑定复选框事件
+      tagCheckboxes.querySelectorAll('input.tagChk').forEach(chk => {
+        chk.addEventListener('change', (e)=>{
+          const el = /** @type {HTMLInputElement} */(e.target);
+          const tag = el.getAttribute('data-tag');
+          if (el.checked) activeTags.add(tag); else activeTags.delete(tag);
+          tagCount.textContent = `${activeTags.size} 已选`;
+          render(filterEvents(events));
+        });
+      });
+    }
+
+    // 顶栏交互
+    sortBtn?.addEventListener('click', ()=>{
+      sortAsc = !sortAsc;
+      sortBtn.textContent = sortAsc ? '升序' : '降序';
+      sortBtn.setAttribute('aria-pressed', String(!sortAsc));
+      render(filterEvents(events));
+    });
+
+    searchInput?.addEventListener('input', ()=>{
+      render(filterEvents(events));
+    });
+
+    tagBtn?.addEventListener('click', ()=>{
+      tagDropdown.classList.toggle('hidden');
+    });
+    clearTagsBtn?.addEventListener('click', ()=>{
+      activeTags.clear();
+      tagCheckboxes.querySelectorAll('input.tagChk').forEach(chk=>{ chk.checked = false; });
+      tagCount.textContent = '0 已选';
+      render(filterEvents(events));
+    });
+    document.addEventListener('click', (e)=>{
+      const w = document.getElementById('tagFilterWrap');
+      if (w && !w.contains(e.target)) tagDropdown.classList.add('hidden');
+    });
+
+    // 粘贴/上传/示例
+    function openPaste(){
+      if (typeof pasteDialog.showModal === 'function') pasteDialog.showModal();
+      else pasteDialog.setAttribute('open','');
+      setTimeout(()=>pasteArea.focus(), 0);
+    }
+    pasteBtn.addEventListener('click', openPaste);
+    emptyPaste.addEventListener('click', openPaste);
+
+    function closePasteDialog(){
+      if (typeof pasteDialog.close === 'function') pasteDialog.close();
+      else pasteDialog.removeAttribute('open');
+    }
+    closePaste.addEventListener('click', closePasteDialog);
+
+    confirmPaste.addEventListener('click', ()=>{
+      try {
+        const rawText = pasteArea.value.trim();
+        if (!rawText) throw new Error('输入为空');
+        const raw = JSON.parse(rawText);
+        const cleaned = validateInput(raw);
+        applyAndRender(cleaned);
+        closePasteDialog();
+      } catch (err){
+        alert('解析失败：' + (err?.message || err));
+      }
+    });
+
+    function handleFile(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = String(reader.result || '').trim();
+          const raw = JSON.parse(text);
+          const cleaned = validateInput(raw);
+          applyAndRender(cleaned);
+        } catch (err){
+          alert('文件解析失败：' + (err?.message || err));
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    fileInput.addEventListener('change', (e)=>{
+      const f = e.target.files?.[0]; if (f) handleFile(f);
+      e.target.value = '';
+    });
+    emptyFile.addEventListener('change', (e)=>{
+      const f = e.target.files?.[0]; if (f) handleFile(f);
+      e.target.value = '';
+    });
+
+    function loadSample(){
+      warnings = [];
+      applyAndRender(SAMPLE_DATA);
+    }
+    sampleBtn.addEventListener('click', loadSample);
+    emptySample.addEventListener('click', loadSample);
+
+    // 路由与首页/详情渲染
+    function updateHeaderForView(view){
+      const isDetail = view === 'detail';
+      const desktopControls = searchInput?.parentElement;
+      if (desktopControls){
+        if (isDetail) desktopControls.classList.remove('hidden'); else desktopControls.classList.add('hidden');
+      }
+      pasteBtn?.classList.toggle('hidden', !isDetail);
+      fileInput?.parentElement?.classList.toggle('hidden', !isDetail);
+      sampleBtn?.classList.toggle('hidden', !isDetail);
+      homeActions?.classList.toggle('hidden', isDetail);
+      backHomeBtn?.classList.toggle('hidden', !isDetail);
+    }
+
+    function renderHome(){
+      currentThemeId = null;
+      titleText.textContent = 'Timeline';
+      updateHeaderForView('home');
+      timelineWrap.classList.add('hidden');
+      emptyState.classList.add('hidden');
+      homeWrap.classList.remove('hidden');
+
+      const ids = themeStore.order;
+      homeGrid.innerHTML = '';
+      if (!ids.length){
+        homeEmpty.classList.remove('hidden');
+        return;
+      }
+      homeEmpty.classList.add('hidden');
+
+      ids.forEach((id)=>{
+        const th = themeStore.themes[id];
+        if (!th) return;
+        const card = document.createElement('article');
+        card.className = 'relative rounded-2xl soft-gradient card-shadow p-5 md:p-6 hover:-translate-y-0.5 transition grid gap-3';
+        const count = th.events.length;
+        const tagSet = new Set();
+        th.events.forEach(ev => (ev.tags||[]).forEach(t=>tagSet.add(t)));
+        const tagsHtml = Array.from(tagSet).slice(0,6).map(t=>`<span class="inline-flex items-center rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-600">${escapeHtml(t)}</span>`).join(' ');
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <h3 class="text-lg md:text-xl font-semibold leading-snug">${escapeHtml(th.meta.name)}</h3>
+            <div class="flex items-center gap-2">
+              <button class="openBtn rounded-xl border border-neutral-200 bg-white px-2 py-1 text-xs hover:bg-neutral-50" data-id="${escapeAttr(th.meta.id)}">打开</button>
+              <button class="delBtn rounded-xl border border-red-200 text-red-600 bg-white px-2 py-1 text-xs hover:bg-red-50" data-id="${escapeAttr(th.meta.id)}">删除</button>
+            </div>
+          </div>
+          ${th.meta.description ? `<p class="text-neutral-700 text-sm">${escapeHtml(th.meta.description)}</p>` : ''}
+          <div class="flex flex-wrap gap-2 items-center">${tagsHtml}</div>
+          <div class="text-xs text-neutral-500">${count} 个事件</div>
+        `;
+        homeGrid.appendChild(card);
+      });
+
+      homeGrid.querySelectorAll('button.openBtn').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const id = e.currentTarget.getAttribute('data-id');
+          navigateToTimeline(id);
+        });
+      });
+      homeGrid.querySelectorAll('button.delBtn').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const id = e.currentTarget.getAttribute('data-id');
+          if (confirm('确定删除该主题及其所有事件？此操作不可撤销。')){
+            deleteTheme(id);
+            renderHome();
+          }
+        });
+      });
+    }
+
+    function renderTimelineDetail(themeId){
+      const theme = themeStore.themes[themeId];
+      if (!theme){
+        alert('主题不存在');
+        navigateToHome();
+        return;
+      }
+      currentThemeId = themeId;
+      titleText.textContent = theme.meta.name || 'Timeline';
+      updateHeaderForView('detail');
+      homeWrap.classList.add('hidden');
+      applyAndRender(theme.events);
+    }
+
+    function navigateToHome(){
+      window.location.hash = '#/';
+    }
+    function navigateToTimeline(id){
+      window.location.hash = '#/timeline/' + encodeURIComponent(id);
+    }
+
+    function onRoute(){
+      const h = window.location.hash || '#/';
+      const m = h.match(/^#\/timeline\/(.+)$/);
+      if (m){
+        const id = decodeURIComponent(m[1]);
+        renderTimelineDetail(id);
+      } else {
+        renderHome();
+      }
+    }
+
+    // 主题对话框
+    function openThemeDialog(){
+      themeDialogTitle.textContent = '新建主题';
+      themeNameInput.value = '';
+      themeDescInput.value = '';
+      if (typeof themeDialog.showModal === 'function') themeDialog.showModal();
+      else themeDialog.setAttribute('open','');
+      setTimeout(()=>themeNameInput.focus(), 0);
+    }
+    function closeTheme(){
+      if (typeof themeDialog.close === 'function') themeDialog.close();
+      else themeDialog.removeAttribute('open');
+    }
+    newThemeBtn.addEventListener('click', openThemeDialog);
+    homeCreate.addEventListener('click', openThemeDialog);
+    closeThemeDialog.addEventListener('click', closeTheme);
+    cancelTheme.addEventListener('click', closeTheme);
+    themeForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = themeNameInput.value.trim();
+      if (!name) return;
+      const id = createTheme(name, themeDescInput.value);
+      closeTheme();
+      navigateToTimeline(id);
+    });
+
+    // 导入/导出主题集
+    function handleImportThemes(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = String(reader.result || '').trim();
+          const raw = JSON.parse(text);
+          if (!raw || typeof raw !== 'object' || !Array.isArray(raw.order) || typeof raw.themes !== 'object') throw new Error('结构不符合主题集格式');
+          themeStore = raw;
+          saveThemeStore();
+          navigateToHome();
+        } catch (err){
+          alert('导入失败：' + (err?.message || err));
+        }
+      };
+      reader.readAsText(file);
+    }
+    importThemesInput.addEventListener('change', (e)=>{
+      const f = e.target.files?.[0]; if (f) handleImportThemes(f);
+      e.target.value = '';
+    });
+    homeImport.addEventListener('change', (e)=>{
+      const f = e.target.files?.[0]; if (f) handleImportThemes(f);
+      e.target.value = '';
+    });
+    exportThemesBtn.addEventListener('click', exportThemes);
+
+    // 启动
+    themeStore = loadThemeStore();
+    ensureSampleTheme();
+    window.addEventListener('hashchange', onRoute);
+    backHomeBtn?.addEventListener('click', navigateToHome);
+    onRoute();
+  </script>
+</body>
+</html>
