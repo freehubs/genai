@@ -438,20 +438,59 @@
     }
 
     async function flushRemoteSaveNow(){
-      if (!supabase || !currentUser) return;
+      if (!supabase) {
+        console.warn('Supabase 未配置');
+        if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = 'Supabase 未配置'; }
+        return;
+      }
+      if (!currentUser) {
+        console.warn('用户未登录');
+        if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '用户未登录，无法保存到云端'; }
+        return;
+      }
       try {
         if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '正在保存到云端…'; }
-        const { error } = await supabase
+        console.log('开始保存到 Supabase，用户ID：', currentUser.id);
+        console.log('保存的数据：', themeStore);
+        
+        const { data, error } = await supabase
           .from('theme_stores')
-          .upsert({ user_id: currentUser.id, store: themeStore, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+          .upsert({ 
+            user_id: currentUser.id, 
+            store: themeStore, 
+            updated_at: new Date().toISOString() 
+          }, { onConflict: 'user_id' });
+          
+        console.log('Supabase 响应 - data:', data, 'error:', error);
+        
         if (error){
-          if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '保存云端失败：' + error.message; }
+          console.error('保存云端失败：', error);
+          if (statusBar){ 
+            statusBar.classList.remove('hidden'); 
+            statusBar.textContent = '保存云端失败：' + error.message; 
+            statusBar.className = statusBar.className.replace('bg-amber-50 text-amber-800', 'bg-red-50 text-red-800');
+          }
         } else {
-          if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '已保存到云端'; }
-          setTimeout(()=>{ if (statusBar) statusBar.classList.add('hidden'); }, 1500);
+          console.log('保存云端成功');
+          if (statusBar){ 
+            statusBar.classList.remove('hidden'); 
+            statusBar.textContent = '已保存到云端'; 
+            statusBar.className = statusBar.className.replace('bg-red-50 text-red-800', 'bg-green-50 text-green-800');
+          }
+          setTimeout(()=>{ 
+            if (statusBar) {
+              statusBar.classList.add('hidden');
+              statusBar.className = statusBar.className.replace('bg-green-50 text-green-800', 'bg-amber-50 text-amber-800');
+            }
+          }, 2000);
         }
       } catch (e){
-        if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '保存云端异常'; }
+        console.error('保存云端异常：', e);
+        if (statusBar){ 
+          statusBar.classList.remove('hidden'); 
+          statusBar.textContent = '保存云端异常：' + (e.message || e); 
+          statusBar.className = statusBar.className.replace('bg-amber-50 text-amber-800', 'bg-red-50 text-red-800');
+        }
       }
     }
 
@@ -1023,6 +1062,11 @@
 
     // 启动
     (async function startup(){
+      // 调试信息
+      console.log('Supabase URL:', SUPABASE_URL);
+      console.log('Supabase Key:', SUPABASE_ANON_KEY ? '已配置' : '未配置');
+      console.log('Supabase client:', supabase ? '已初始化' : '未初始化');
+      
       themeStore = loadThemeStore();
       ensureSampleTheme();
       bindAuthHandlers();
