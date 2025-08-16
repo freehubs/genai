@@ -6,7 +6,6 @@
   <title>Apple 风格通用时间线</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/api/supabase-config.js"></script>
   <style>
     /* 细腻阴影与卡片质感 */
     .card-shadow { box-shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04); }
@@ -279,14 +278,29 @@
     };
 
     const STORE_KEY = 'timeline_themes_v1';
-    // Supabase（在根目录创建 supabase.config.js 并定义 window.SUPABASE_URL 与 window.SUPABASE_ANON_KEY）
-    const SUPABASE_URL = typeof window !== 'undefined' ? (window.SUPABASE_URL || '') : '';
-    const SUPABASE_ANON_KEY = typeof window !== 'undefined' ? (window.SUPABASE_ANON_KEY || '') : '';
-    const supabase = (typeof window !== 'undefined' && window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
+    // Supabase 配置（通过 API 获取）
+    let supabase = null;
     let currentUser = null;
     let saveTimer = null;
+    
+    // 初始化 Supabase 客户端
+    async function initSupabase() {
+      try {
+        const response = await fetch('/api/config.js');
+        const config = await response.json();
+        if (config.supabaseUrl && config.supabaseAnonKey && window.supabase) {
+          supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+          console.log('Supabase 初始化成功');
+          return true;
+        } else {
+          console.warn('Supabase 配置不完整');
+          return false;
+        }
+      } catch (error) {
+        console.error('初始化 Supabase 失败:', error);
+        return false;
+      }
+    }
 
     // --- Utilities ---
     /** @param {TimePoint} tp */
@@ -1062,15 +1076,20 @@
 
     // 启动
     (async function startup(){
-      // 调试信息
-      console.log('Supabase URL:', SUPABASE_URL);
-      console.log('Supabase Key:', SUPABASE_ANON_KEY ? '已配置' : '未配置');
-      console.log('Supabase client:', supabase ? '已初始化' : '未初始化');
+      console.log('正在初始化应用...');
+      
+      // 先初始化 Supabase
+      const supabaseReady = await initSupabase();
+      console.log('Supabase 就绪:', supabaseReady);
       
       themeStore = loadThemeStore();
       ensureSampleTheme();
       bindAuthHandlers();
-      await loadRemoteStoreIfLoggedIn();
+      
+      if (supabaseReady) {
+        await loadRemoteStoreIfLoggedIn();
+      }
+      
       window.addEventListener('hashchange', onRoute);
       backHomeBtn?.addEventListener('click', navigateToHome);
       onRoute();

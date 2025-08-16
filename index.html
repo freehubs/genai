@@ -6,7 +6,6 @@
   <title>主页 - 应用集</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/api/supabase-config.js"></script>
   <style>
     .card-shadow { box-shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04); }
   </style>
@@ -40,14 +39,26 @@
   </main>
 
   <script>
-    const SUPABASE_URL = typeof window !== 'undefined' ? (window.SUPABASE_URL || '') : '';
-    const SUPABASE_ANON_KEY = typeof window !== 'undefined' ? (window.SUPABASE_ANON_KEY || '') : '';
-    const supabase = (typeof window !== 'undefined' && window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
+    let supabase = null;
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userInfo = document.getElementById('userInfo');
+
+    // 初始化 Supabase
+    async function initSupabase() {
+      try {
+        const response = await fetch('/api/config.js');
+        const config = await response.json();
+        if (config.supabaseUrl && config.supabaseAnonKey && window.supabase) {
+          supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('初始化 Supabase 失败:', error);
+        return false;
+      }
+    }
 
     function updateAuthUI(user){
       const loggedIn = !!user;
@@ -68,7 +79,9 @@
     }
 
     async function init(){
-      if (!supabase) return;
+      const supabaseReady = await initSupabase();
+      if (!supabaseReady) return;
+      
       const { data: { session } } = await supabase.auth.getSession();
       updateAuthUI(session?.user || null);
       supabase.auth.onAuthStateChange((_event, session)=>{
