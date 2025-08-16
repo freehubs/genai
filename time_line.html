@@ -421,12 +421,38 @@
       if (saveTimer) clearTimeout(saveTimer);
       saveTimer = setTimeout(async ()=>{
         try {
+          // 保存中状态
+          if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '正在保存到云端…'; }
           const { error } = await supabase
             .from('theme_stores')
             .upsert({ user_id: currentUser.id, store: themeStore, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-          if (error) console.warn('保存远端失败：', error.message);
+          if (error){
+            console.warn('保存远端失败：', error.message);
+            if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '保存云端失败：' + error.message; }
+          } else {
+            if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '已保存到云端'; }
+            setTimeout(()=>{ if (statusBar) statusBar.classList.add('hidden'); }, 1500);
+          }
         } catch (e){ console.warn('保存远端异常：', e); }
       }, 500);
+    }
+
+    async function flushRemoteSaveNow(){
+      if (!supabase || !currentUser) return;
+      try {
+        if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '正在保存到云端…'; }
+        const { error } = await supabase
+          .from('theme_stores')
+          .upsert({ user_id: currentUser.id, store: themeStore, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        if (error){
+          if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '保存云端失败：' + error.message; }
+        } else {
+          if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '已保存到云端'; }
+          setTimeout(()=>{ if (statusBar) statusBar.classList.add('hidden'); }, 1500);
+        }
+      } catch (e){
+        if (statusBar){ statusBar.classList.remove('hidden'); statusBar.textContent = '保存云端异常'; }
+      }
     }
 
     function bindAuthHandlers(){
@@ -802,24 +828,20 @@
     emptySample.addEventListener('click', loadSample);
 
     // 路由与首页/详情渲染
-    function updateHeaderForView(view){
-      const isDetail = view === 'detail';
+    function updateHeaderForView(_view){
+      // 统一隐藏除“新增主题”和“回主页面”与登录区外的所有顶栏控件
       const desktopControls = searchInput?.parentElement;
-      if (desktopControls){
-        if (isDetail) desktopControls.classList.remove('hidden'); else desktopControls.classList.add('hidden');
-      }
-      pasteBtn?.classList.toggle('hidden', !isDetail);
-      fileInput?.parentElement?.classList.toggle('hidden', !isDetail);
-      sampleBtn?.classList.toggle('hidden', !isDetail);
-      // 首页仅保留“新增主题”按钮
+      if (desktopControls) desktopControls.classList.add('hidden');
+      pasteBtn?.classList.add('hidden');
+      fileInput?.parentElement?.classList.add('hidden');
+      sampleBtn?.classList.add('hidden');
+      // homeActions 只显示“新建主题”按钮
       if (homeActions){
         homeActions.classList.remove('hidden');
-        // 隐藏导入/导出，仅显示“新建主题”
         const importLabel = importThemesInput?.parentElement;
         if (importLabel) importLabel.classList.add('hidden');
         exportThemesBtn?.classList.add('hidden');
       }
-      // 始终显示“回主页面”（返回站点根）
       backHomeBtn?.classList.remove('hidden');
     }
 
@@ -901,7 +923,7 @@
     }
 
     function navigateToHome(){
-      window.location.hash = '#/';
+      window.location.href = '/';
     }
     function navigateToTimeline(id){
       window.location.hash = '#/timeline/' + encodeURIComponent(id);
@@ -958,7 +980,10 @@
       const old = themeStore.themes[id].events || [];
       themeStore.themes[id].events = isAppend ? dedupeEvents(old, withIds) : withIds;
       saveThemeStore();
+      // 立即刷新写云端，避免用户刷新时看不到
+      await flushRemoteSaveNow();
       closeTheme();
+      // 返回 time_line 的首页（主题列表）
       window.location.hash = '#/';
     });
 
