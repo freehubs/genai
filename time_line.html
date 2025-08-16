@@ -137,12 +137,23 @@
     <form id="themeForm" class="p-5 space-y-3">
       <label class="block text-sm">
         <span class="text-neutral-600">主题名称</span>
-        <input id="themeNameInput" type="text" required class="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" placeholder="例如：科学与历史" />
+        <input id="themeNameInput" type="text" required class="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" placeholder="例如：我的时间线" />
       </label>
       <label class="block text-sm">
-        <span class="text-neutral-600">简介（可选）</span>
-        <textarea id="themeDescInput" class="mt-1 w-full h-24 rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" placeholder="一句话描述该主题"></textarea>
+        <span class="text-neutral-600">主题描述（可选）</span>
+        <textarea id="themeDescInput" class="mt-1 w-full h-20 rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10" placeholder="一句话描述该主题"></textarea>
       </label>
+      <label class="block text-sm">
+        <span class="text-neutral-600">事件 JSON（数组）</span>
+        <textarea id="themeEventsText" class="mt-1 w-full h-40 rounded-xl border border-neutral-200 px-3 py-2 font-mono text-sm" placeholder='[
+  {"time": {"year": 2008, "month": 8}, "title": "示例事件", "tags": ["样例"]}
+]'></textarea>
+      </label>
+      <div class="flex items-center gap-3 text-sm">
+        <span class="text-neutral-600">导入模式：</span>
+        <label class="inline-flex items-center gap-1"><input type="radio" name="themeImportMode" id="themeImportOverwrite" checked> 覆盖</label>
+        <label class="inline-flex items-center gap-1"><input type="radio" name="themeImportMode" id="themeImportAppend"> 追加</label>
+      </div>
       <div class="pt-2 flex justify-end gap-2">
         <button type="button" id="cancelTheme" class="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50">取消</button>
         <button type="submit" class="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm hover:bg-neutral-800">保存</button>
@@ -209,6 +220,9 @@
     const themeForm = document.getElementById('themeForm');
     const themeNameInput = document.getElementById('themeNameInput');
     const themeDescInput = document.getElementById('themeDescInput');
+    const themeEventsText = document.getElementById('themeEventsText');
+    const themeImportOverwrite = document.getElementById('themeImportOverwrite');
+    const themeImportAppend = document.getElementById('themeImportAppend');
     const cancelTheme = document.getElementById('cancelTheme');
     const themeDialogTitle = document.getElementById('themeDialogTitle');
     const homeCreate = document.getElementById('homeCreate');
@@ -797,8 +811,16 @@
       pasteBtn?.classList.toggle('hidden', !isDetail);
       fileInput?.parentElement?.classList.toggle('hidden', !isDetail);
       sampleBtn?.classList.toggle('hidden', !isDetail);
-      homeActions?.classList.toggle('hidden', isDetail);
-      backHomeBtn?.classList.toggle('hidden', !isDetail);
+      // 首页仅保留“新增主题”按钮
+      if (homeActions){
+        homeActions.classList.remove('hidden');
+        // 隐藏导入/导出，仅显示“新建主题”
+        const importLabel = importThemesInput?.parentElement;
+        if (importLabel) importLabel.classList.add('hidden');
+        exportThemesBtn?.classList.add('hidden');
+      }
+      // 始终显示“回主页面”（返回站点根）
+      backHomeBtn?.classList.remove('hidden');
     }
 
     function renderHome(){
@@ -901,6 +923,8 @@
       themeDialogTitle.textContent = '新建主题';
       themeNameInput.value = '';
       themeDescInput.value = '';
+      themeEventsText.value = '';
+      if (themeImportOverwrite) themeImportOverwrite.checked = true;
       if (typeof themeDialog.showModal === 'function') themeDialog.showModal();
       else themeDialog.setAttribute('open','');
       setTimeout(()=>themeNameInput.focus(), 0);
@@ -917,9 +941,25 @@
       e.preventDefault();
       const name = themeNameInput.value.trim();
       if (!name) return;
+      // 解析事件 JSON（复用粘贴 JSON逻辑）
+      let parsedEvents = [];
+      try {
+        const text = (themeEventsText?.value || '').trim();
+        if (!text) throw new Error('事件 JSON 不能为空');
+        const raw = JSON.parse(text);
+        parsedEvents = validateInput(raw);
+      } catch (err){
+        alert('事件 JSON 解析失败：' + (err?.message || err));
+        return;
+      }
+      const withIds = normalizeEventsWithIds(parsedEvents);
       const id = createTheme(name, themeDescInput.value);
+      const isAppend = themeImportAppend && /** @type {HTMLInputElement} */(themeImportAppend).checked;
+      const old = themeStore.themes[id].events || [];
+      themeStore.themes[id].events = isAppend ? dedupeEvents(old, withIds) : withIds;
+      saveThemeStore();
       closeTheme();
-      navigateToTimeline(id);
+      window.location.hash = '#/';
     });
 
     // 导入/导出主题集
