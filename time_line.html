@@ -114,9 +114,16 @@
       <textarea id="pasteArea" class="w-full h-60 rounded-xl border border-neutral-200 p-3 font-mono text-sm" placeholder='[
   {"time": {"year": 2008, "month": 8}, "title": "示例事件", "tags": ["样例"]}
 ]'></textarea>
-      <div class="flex justify-between items-center mt-3 text-sm">
+      <div class="flex flex-col gap-2 mt-3 text-sm">
         <div class="text-neutral-500">支持时间点或区间：{"time":{"year":2020}} / {"time":{"start":{"year":1914},"end":{"year":1918}}}</div>
-        <button id="confirmPaste" class="rounded-xl bg-neutral-900 text-white px-4 py-2 hover:bg-neutral-800">导入</button>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="text-neutral-600">导入模式：</span>
+            <label class="inline-flex items-center gap-1"><input type="radio" name="importMode" id="importModeOverwrite" checked> 覆盖</label>
+            <label class="inline-flex items-center gap-1"><input type="radio" name="importMode" id="importModeAppend"> 追加</label>
+          </div>
+          <button id="confirmPaste" class="rounded-xl bg-neutral-900 text-white px-4 py-2 hover:bg-neutral-800">导入</button>
+        </div>
       </div>
     </div>
   </dialog>
@@ -195,6 +202,8 @@
     const closePaste = document.getElementById('closePaste');
     const pasteArea = document.getElementById('pasteArea');
     const confirmPaste = document.getElementById('confirmPaste');
+    const importModeOverwrite = document.getElementById('importModeOverwrite');
+    const importModeAppend = document.getElementById('importModeAppend');
     const themeDialog = document.getElementById('themeDialog');
     const closeThemeDialog = document.getElementById('closeThemeDialog');
     const themeForm = document.getElementById('themeForm');
@@ -307,6 +316,39 @@
         themeStore.themes[SAMPLE_THEME.meta.id] = SAMPLE_THEME;
         saveThemeStore();
       }
+    }
+
+    // 生成稳定事件ID
+    function genEventId(){
+      return 'evt-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+    }
+
+    // 规范化并补ID
+    function normalizeEventsWithIds(list){
+      return list.map(ev=>{
+        const copy = { ...ev };
+        if (!copy.id) copy.id = genEventId();
+        if (copy.tags && Array.isArray(copy.tags)){
+          const set = new Set(copy.tags.map(t=>String(t).trim()).filter(Boolean));
+          copy.tags = Array.from(set);
+        }
+        return copy;
+      });
+    }
+
+    // 事件去重（按 id；若缺失则按 title+time 文本）
+    function dedupeEvents(existing, incoming){
+      const keyOf = (ev)=> ev.id || (ev.title + '|' + JSON.stringify(ev.time));
+      const seen = new Set(existing.map(keyOf));
+      const merged = existing.slice();
+      for (const ev of incoming){
+        const k = keyOf(ev);
+        if (!seen.has(k)){
+          merged.push(ev);
+          seen.add(k);
+        }
+      }
+      return merged;
     }
 
     // --- Remote Sync (Supabase) ---
@@ -699,7 +741,15 @@
         if (!rawText) throw new Error('输入为空');
         const raw = JSON.parse(rawText);
         const cleaned = validateInput(raw);
-        applyAndRender(cleaned);
+        const withIds = normalizeEventsWithIds(cleaned);
+        const isAppend = importModeAppend && /** @type {HTMLInputElement} */(importModeAppend).checked;
+        if (currentThemeId && themeStore.themes[currentThemeId]){
+          const old = themeStore.themes[currentThemeId].events || [];
+          const next = isAppend ? dedupeEvents(old, withIds) : withIds;
+          applyAndRender(next);
+        } else {
+          applyAndRender(withIds);
+        }
         closePasteDialog();
       } catch (err){
         alert('解析失败：' + (err?.message || err));
@@ -819,7 +869,13 @@
       titleText.textContent = theme.meta.name || 'Timeline';
       updateHeaderForView('detail');
       homeWrap.classList.add('hidden');
-      applyAndRender(theme.events);
+      // 补齐事件ID
+      const fixed = normalizeEventsWithIds(theme.events || []);
+      if (fixed.length !== (theme.events || []).length){
+        themeStore.themes[themeId].events = fixed;
+        saveThemeStore();
+      }
+      applyAndRender(fixed);
     }
 
     function navigateToHome(){
