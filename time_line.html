@@ -959,10 +959,17 @@
     homeCreate.addEventListener('click', openThemeDialog);
     closeThemeDialog.addEventListener('click', closeTheme);
     cancelTheme.addEventListener('click', closeTheme);
-    themeForm.addEventListener('submit', (e)=>{
+    themeForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const name = themeNameInput.value.trim();
       if (!name) return;
+      
+      // 检查登录状态
+      if (!currentUser) {
+        alert('请先登录再创建主题');
+        return;
+      }
+      
       // 解析事件 JSON（复用粘贴 JSON逻辑）
       let parsedEvents = [];
       try {
