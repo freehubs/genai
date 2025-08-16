@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Apple 风格通用时间线</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.config.js"></script>
   <style>
     /* 细腻阴影与卡片质感 */
     .card-shadow { box-shadow: 0 10px 30px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04); }
@@ -51,6 +53,11 @@
             <input id="importThemesInput" type="file" accept="application/json,.json" class="hidden" />
           </label>
           <button id="exportThemesBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">导出主题集</button>
+        </div>
+        <div class="flex items-center gap-2" id="authWrap" aria-label="登录状态">
+          <span id="userInfo" class="hidden text-sm text-neutral-600"></span>
+          <button id="loginBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">登录</button>
+          <button id="logoutBtn" class="hidden rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50">退出</button>
         </div>
       </div>
     </div>
@@ -176,6 +183,9 @@
     const importThemesInput = document.getElementById('importThemesInput');
     const exportThemesBtn = document.getElementById('exportThemesBtn');
     const backHomeBtn = document.getElementById('backHomeBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userInfo = document.getElementById('userInfo');
 
     const emptySample = document.getElementById('emptySample');
     const emptyPaste = document.getElementById('emptyPaste');
@@ -246,6 +256,14 @@
     };
 
     const STORE_KEY = 'timeline_themes_v1';
+    // Supabase（在根目录创建 supabase.config.js 并定义 window.SUPABASE_URL 与 window.SUPABASE_ANON_KEY）
+    const SUPABASE_URL = typeof window !== 'undefined' ? (window.SUPABASE_URL || '') : '';
+    const SUPABASE_ANON_KEY = typeof window !== 'undefined' ? (window.SUPABASE_ANON_KEY || '') : '';
+    const supabase = (typeof window !== 'undefined' && window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+    let currentUser = null;
+    let saveTimer = null;
 
     // --- Utilities ---
     /** @param {TimePoint} tp */
@@ -280,6 +298,7 @@
 
     function saveThemeStore(){
       localStorage.setItem(STORE_KEY, JSON.stringify(themeStore));
+      scheduleRemoteSave();
     }
 
     function ensureSampleTheme(){
@@ -287,6 +306,94 @@
         themeStore.order = [SAMPLE_THEME.meta.id];
         themeStore.themes[SAMPLE_THEME.meta.id] = SAMPLE_THEME;
         saveThemeStore();
+      }
+    }
+
+    // --- Remote Sync (Supabase) ---
+    function updateAuthUI(user){
+      const loggedIn = !!user;
+      if (loggedIn){
+        loginBtn?.classList.add('hidden');
+        logoutBtn?.classList.remove('hidden');
+        if (userInfo){
+          const name = user.user_metadata?.name || user.email || user.id;
+          userInfo.textContent = `已登录：${name}`;
+          userInfo.classList.remove('hidden');
+        }
+      } else {
+        logoutBtn?.classList.add('hidden');
+        loginBtn?.classList.remove('hidden');
+        userInfo?.classList.add('hidden');
+        if (userInfo) userInfo.textContent = '';
+      }
+    }
+
+    async function loadRemoteStoreIfLoggedIn(){
+      if (!supabase) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      currentUser = session?.user || null;
+      updateAuthUI(currentUser);
+      if (!currentUser) return;
+      // 拉取云端 store
+      const { data, error } = await supabase
+        .from('theme_stores')
+        .select('store')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      if (error && error.code !== 'PGRST116') {
+        console.warn('加载远端失败：', error.message);
+        return;
+      }
+      if (!data || !data.store){
+        // 初始化用户行
+        const initial = themeStore && themeStore.order?.length ? themeStore : { order: [SAMPLE_THEME.meta.id], themes: { [SAMPLE_THEME.meta.id]: SAMPLE_THEME } };
+        const { error: upErr } = await supabase
+          .from('theme_stores')
+          .upsert({ user_id: currentUser.id, store: initial, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        if (upErr) console.warn('初始化远端失败：', upErr.message);
+        themeStore = initial;
+        saveThemeStore();
+      } else {
+        // 以云端为准
+        themeStore = data.store;
+        saveThemeStore();
+      }
+    }
+
+    function scheduleRemoteSave(){
+      if (!supabase || !currentUser) return;
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(async ()=>{
+        try {
+          const { error } = await supabase
+            .from('theme_stores')
+            .upsert({ user_id: currentUser.id, store: themeStore, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+          if (error) console.warn('保存远端失败：', error.message);
+        } catch (e){ console.warn('保存远端异常：', e); }
+      }, 500);
+    }
+
+    function bindAuthHandlers(){
+      loginBtn?.addEventListener('click', async ()=>{
+        if (!supabase){ alert('未配置 Supabase。请创建 supabase.config.js'); return; }
+        const redirectTo = window.location.origin + window.location.pathname;
+        const { error } = await supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
+        if (error) alert('登录失败：' + error.message);
+      });
+      logoutBtn?.addEventListener('click', async ()=>{
+        if (!supabase) return;
+        const { error } = await supabase.auth.signOut();
+        if (error) alert('退出失败：' + error.message);
+      });
+      if (supabase){
+        supabase.auth.onAuthStateChange(async (_event, session)=>{
+          currentUser = session?.user || null;
+          updateAuthUI(currentUser);
+          if (currentUser){
+            await loadRemoteStoreIfLoggedIn();
+          }
+          onRoute();
+        });
       }
     }
 
@@ -787,11 +894,15 @@
     exportThemesBtn.addEventListener('click', exportThemes);
 
     // 启动
-    themeStore = loadThemeStore();
-    ensureSampleTheme();
-    window.addEventListener('hashchange', onRoute);
-    backHomeBtn?.addEventListener('click', navigateToHome);
-    onRoute();
+    (async function startup(){
+      themeStore = loadThemeStore();
+      ensureSampleTheme();
+      bindAuthHandlers();
+      await loadRemoteStoreIfLoggedIn();
+      window.addEventListener('hashchange', onRoute);
+      backHomeBtn?.addEventListener('click', navigateToHome);
+      onRoute();
+    })();
   </script>
 </body>
 </html>
