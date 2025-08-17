@@ -87,11 +87,12 @@ export default function MindCardsPage() {
     if (error) {
       console.error('Error loading cards:', error)
     } else {
-      setCards(data || [])
+      const cardsData: MindCard[] = (data ?? []) as MindCard[]
+      setCards(cardsData)
       // 提取所有标签
       const tags = new Set<string>()
-      data?.forEach(card => {
-        card.tags?.forEach(tag => tags.add(tag))
+      cardsData.forEach((card: MindCard) => {
+        card.tags?.forEach((tag: string) => tags.add(tag))
       })
       setAllTags(Array.from(tags).sort())
     }
