@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GenAI Platform - 智能应用集合</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     /* 自定义样式 */
     .text-gradient {
@@ -77,6 +78,85 @@
     .close:hover {
       color: #374151;
     }
+
+    .btn-github {
+      background: #24292e;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .btn-github:hover {
+      background: #1f2328;
+      transform: translateY(-1px);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1rem 0;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .divider::before {
+      margin-right: 0.5rem;
+    }
+
+    .divider::after {
+      margin-left: 0.5rem;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .success-message {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-white text-neutral-900 antialiased">
@@ -96,6 +176,17 @@
         >
           登录
         </button>
+        <div id="userInfo" class="hidden">
+          <div class="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/50">
+            <span class="text-sm text-gray-700" id="userName"></span>
+            <button 
+              id="logoutBtn"
+              class="text-xs text-red-600 hover:text-red-800 transition-colors"
+            >
+              退出
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -246,7 +337,25 @@
         <p class="text-neutral-600">登录您的账户以访问所有功能</p>
       </div>
       
-      <form class="space-y-4">
+      <!-- 消息提示区域 -->
+      <div id="messageArea" class="hidden"></div>
+      
+      <!-- GitHub OAuth 登录 -->
+      <button 
+        id="githubLoginBtn"
+        class="btn-github mb-4"
+        onclick="handleGitHubLogin()"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"/>
+        </svg>
+        使用 GitHub 登录
+      </button>
+      
+      <div class="divider">或者</div>
+      
+      <!-- 邮箱密码登录表单 -->
+      <form id="loginForm" class="space-y-4">
         <div>
           <label for="email" class="block text-sm font-medium text-neutral-700 mb-2">邮箱地址</label>
           <input 
@@ -279,9 +388,11 @@
         
         <button 
           type="submit" 
-          class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium"
+          id="loginSubmitBtn"
+          class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium flex items-center justify-center"
         >
-          登录
+          <span id="loginBtnText">登录</span>
+          <div id="loginBtnLoading" class="loading hidden"></div>
         </button>
       </form>
       
@@ -295,10 +406,144 @@
   </div>
 
   <script>
+    // Supabase 配置
+    const SUPABASE_URL = 'https://your-project.supabase.co' // 需要替换为实际的URL
+    const SUPABASE_ANON_KEY = 'your-anon-key' // 需要替换为实际的key
+    
+    // 初始化 Supabase 客户端
+    let supabase;
+    
+    try {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (error) {
+      console.error('Failed to initialize Supabase:', error);
+    }
+    
+    // 页面加载时检查用户状态
+    document.addEventListener('DOMContentLoaded', async function() {
+      if (supabase) {
+        await checkUser();
+      }
+    });
+    
+    // 检查用户登录状态
+    async function checkUser() {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (user && !error) {
+          showUserInfo(user);
+        } else {
+          showLoginButton();
+        }
+      } catch (error) {
+        console.error('Error checking user:', error);
+        showLoginButton();
+      }
+    }
+    
+    // 显示用户信息
+    function showUserInfo(user) {
+      document.getElementById('loginBtn').classList.add('hidden');
+      document.getElementById('userInfo').classList.remove('hidden');
+      document.getElementById('userName').textContent = user.user_metadata?.name || user.email || '用户';
+    }
+    
+    // 显示登录按钮
+    function showLoginButton() {
+      document.getElementById('loginBtn').classList.remove('hidden');
+      document.getElementById('userInfo').classList.add('hidden');
+    }
+    
+    // GitHub OAuth 登录
+    async function handleGitHubLogin() {
+      if (!supabase) {
+        showMessage('Supabase 未配置', 'error');
+        return;
+      }
+      
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: window.location.origin + '/auth/callback'
+          }
+        });
+        
+        if (error) {
+          showMessage('GitHub 登录失败: ' + error.message, 'error');
+        }
+      } catch (error) {
+        showMessage('登录过程中发生错误: ' + error.message, 'error');
+      }
+    }
+    
+    // 邮箱密码登录
+    async function handleEmailLogin(email, password) {
+      if (!supabase) {
+        showMessage('Supabase 未配置', 'error');
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) {
+          showMessage('登录失败: ' + error.message, 'error');
+        } else {
+          showMessage('登录成功！', 'success');
+          setTimeout(() => {
+            closeModal();
+            checkUser();
+          }, 1000);
+        }
+      } catch (error) {
+        showMessage('登录过程中发生错误: ' + error.message, 'error');
+      }
+    }
+    
+    // 退出登录
+    async function handleLogout() {
+      if (!supabase) {
+        showMessage('Supabase 未配置', 'error');
+        return;
+      }
+      
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          showMessage('退出失败: ' + error.message, 'error');
+        } else {
+          showMessage('已成功退出', 'success');
+          showLoginButton();
+        }
+      } catch (error) {
+        showMessage('退出过程中发生错误: ' + error.message, 'error');
+      }
+    }
+    
+    // 显示消息
+    function showMessage(message, type) {
+      const messageArea = document.getElementById('messageArea');
+      const messageClass = type === 'error' ? 'error-message' : 'success-message';
+      
+      messageArea.innerHTML = `<div class="${messageClass}">${message}</div>`;
+      messageArea.classList.remove('hidden');
+      
+      // 3秒后自动隐藏
+      setTimeout(() => {
+        messageArea.classList.add('hidden');
+      }, 3000);
+    }
+    
     // 登录模态框功能
     const loginBtn = document.getElementById('loginBtn');
     const loginModal = document.getElementById('loginModal');
     const closeModal = document.getElementById('closeModal');
+    const loginForm = document.getElementById('loginForm');
+    const logoutBtn = document.getElementById('logoutBtn');
     
     // 打开模态框
     loginBtn.addEventListener('click', function() {
@@ -307,43 +552,57 @@
     });
     
     // 关闭模态框
-    closeModal.addEventListener('click', function() {
+    function closeModal() {
       loginModal.classList.remove('show');
       document.body.style.overflow = 'auto';
-    });
+      // 清空表单和消息
+      loginForm.reset();
+      document.getElementById('messageArea').classList.add('hidden');
+    }
+    
+    // 关闭模态框事件
+    closeModal.addEventListener('click', closeModal);
     
     // 点击模态框外部关闭
     loginModal.addEventListener('click', function(e) {
       if (e.target === loginModal) {
-        loginModal.classList.remove('show');
-        document.body.style.overflow = 'auto';
+        closeModal();
       }
     });
     
     // ESC键关闭模态框
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && loginModal.classList.contains('show')) {
-        loginModal.classList.remove('show');
-        document.body.style.overflow = 'auto';
+        closeModal();
       }
     });
     
     // 表单提交处理
-    document.querySelector('form').addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', function(e) {
       e.preventDefault();
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       
-      // 这里可以添加实际的登录逻辑
-      console.log('登录信息:', { email, password });
+      // 显示加载状态
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const btnLoading = document.getElementById('loginBtnLoading');
       
-      // 显示登录成功消息
-      alert('登录功能开发中，请稍后再试！');
+      btnText.classList.add('hidden');
+      btnLoading.classList.remove('hidden');
+      submitBtn.disabled = true;
       
-      // 关闭模态框
-      loginModal.classList.remove('show');
-      document.body.style.overflow = 'auto';
+      // 执行登录
+      handleEmailLogin(email, password).finally(() => {
+        // 恢复按钮状态
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
+        submitBtn.disabled = false;
+      });
     });
+    
+    // 退出登录事件
+    logoutBtn.addEventListener('click', handleLogout);
   </script>
 </body>
 </html>
