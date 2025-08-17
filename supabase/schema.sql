@@ -144,18 +144,22 @@ end;
 $$ language plpgsql;
 
 -- Triggers for updating timestamps
-create trigger if not exists handle_timeline_topics_updated_at
+drop trigger if exists handle_timeline_topics_updated_at on public.timeline_topics;
+create trigger handle_timeline_topics_updated_at
   before update on public.timeline_topics
   for each row execute procedure public.handle_updated_at();
 
-create trigger if not exists handle_timeline_events_updated_at
+drop trigger if exists handle_timeline_events_updated_at on public.timeline_events;
+create trigger handle_timeline_events_updated_at
   before update on public.timeline_events
   for each row execute procedure public.handle_updated_at();
 
-create trigger if not exists handle_mind_topics_updated_at
+drop trigger if exists handle_mind_topics_updated_at on public.mind_topics;
+create trigger handle_mind_topics_updated_at
   before update on public.mind_topics
   for each row execute procedure public.handle_updated_at();
 
-create trigger if not exists handle_mind_cards_updated_at
+drop trigger if exists handle_mind_cards_updated_at on public.mind_cards;
+create trigger handle_mind_cards_updated_at
   before update on public.mind_cards
   for each row execute procedure public.handle_updated_at();
