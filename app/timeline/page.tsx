@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthButton } from '@/components/auth/auth-button'
+import { CreateTopicDialog } from '@/components/timeline/create-topic-dialog'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
 
@@ -20,6 +21,7 @@ export default function TimelinePage() {
   const [searchYear, setSearchYear] = useState('')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [showCreateTopic, setShowCreateTopic] = useState(false)
 
   const supabase = createClient()
 
@@ -165,7 +167,7 @@ export default function TimelinePage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">主题</CardTitle>
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => setShowCreateTopic(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     新建
                   </Button>
@@ -312,6 +314,16 @@ export default function TimelinePage() {
           </div>
         </div>
       </div>
+
+      {/* Create Topic Dialog */}
+      <CreateTopicDialog
+        open={showCreateTopic}
+        onOpenChange={setShowCreateTopic}
+        onSuccess={() => {
+          loadTopics()
+          setShowCreateTopic(false)
+        }}
+      />
     </div>
   )
 }
