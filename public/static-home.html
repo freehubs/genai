@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GenAI Platform - 智能应用集合</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 自定义样式 */
+    .text-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hover-lift {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: scale(1.02);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-white text-neutral-900 antialiased">
+  <!-- 顶栏 -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-neutral-100">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
+      <div class="flex-1 flex items-center gap-2">
+        <div class="w-8 h-8 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white grid place-items-center">
+          ✨
+        </div>
+        <h1 class="text-xl md:text-2xl font-semibold tracking-tight">GenAI Platform</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50 transition-colors">
+          登录
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="mx-auto max-w-6xl px-3 sm:px-4 md:px-6 lg:px-8 py-8">
+    <!-- Hero Section -->
+    <section class="text-center mb-20">
+      <h1 class="text-4xl md:text-6xl font-light text-neutral-900 leading-tight tracking-tight mb-6">
+        智能应用
+        <br />
+        <span class="text-gradient font-medium">集合平台</span>
+      </h1>
+      <p class="text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto leading-relaxed font-light">
+        基于现代技术栈构建，帮助你更好地管理时间线、整理知识和提升效率
+      </p>
+    </section>
+
+    <!-- 应用卡片 -->
+    <section class="space-y-6 mb-20">
+      <!-- 时间线应用 -->
+      <div class="hover-lift">
+        <a href="/timeline" class="block group">
+          <div class="relative overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-200 hover:border-blue-300 transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span class="text-2xl">⏱</span>
+                </div>
+                <div>
+                  <h2 class="text-2xl font-medium text-neutral-900 mb-2">时间线</h2>
+                  <p class="text-neutral-600 max-w-md">
+                    管理你的主题与事件，支持多端同步与搜索筛选
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 text-blue-500 group-hover:text-blue-600 transition-colors">
+                <span class="text-sm font-medium">进入应用</span>
+                <span class="text-lg">→</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- 心智模型卡片 -->
+      <div class="hover-lift">
+        <a href="/mindcards" class="block group">
+          <div class="relative overflow-hidden bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-200 hover:border-purple-300 transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="relative flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span class="text-2xl">🧠</span>
+                </div>
+                <div>
+                  <h2 class="text-2xl font-medium text-neutral-900 mb-2">心智模型卡片</h2>
+                  <p class="text-neutral-600 max-w-md">
+                    收集和整理心智模型，提升思维能力
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 text-purple-500 group-hover:text-purple-600 transition-colors">
+                <span class="text-sm font-medium">进入应用</span>
+                <span class="text-lg">→</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 平台特性 -->
+    <section class="mb-20">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-light text-neutral-900 mb-4">平台特性</h2>
+        <p class="text-neutral-600">精心设计的用户体验，让每个功能都触手可及</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="group card-hover">
+          <div class="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:bg-white">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <span class="text-xl">🔐</span>
+            </div>
+            <h3 class="text-lg font-medium text-neutral-900 mb-2">统一认证</h3>
+            <p class="text-neutral-600 text-sm leading-relaxed">
+              所有应用共享统一的用户账户系统，一次登录，畅享所有功能
+            </p>
+          </div>
+        </div>
+
+        <div class="group card-hover">
+          <div class="p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:border-purple-300 transition-all duration-300 hover:bg-white">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <span class="text-xl">📱</span>
+            </div>
+            <h3 class="text-lg font-medium text-neutral-900 mb-2">响应式设计</h3>
+            <p class="text-neutral-600 text-sm leading-relaxed">
+              完美适配移动端和桌面端，无论在哪里都能获得最佳体验
+            </p>
+          </div>
+        </div>
+
+        <div class="group card-hover">
+          <div class="p-6 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 hover:border-emerald-300 transition-all duration-300 hover:bg-white">
+            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <span class="text-xl">🚀</span>
+            </div>
+            <h3 class="text-lg font-medium text-neutral-900 mb-2">可扩展架构</h3>
+            <p class="text-neutral-600 text-sm leading-relaxed">
+              支持快速添加新的应用模块，让平台随着你的需求不断成长
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 更多应用开发中 -->
+    <section class="text-center">
+      <div class="inline-flex items-center space-x-2 text-neutral-500 bg-neutral-100 px-4 py-2 rounded-full">
+        <div class="w-2 h-2 bg-neutral-400 rounded-full animate-pulse"></div>
+        <span class="text-sm">更多应用开发中</span>
+        <div class="w-2 h-2 bg-neutral-400 rounded-full animate-pulse"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="border-t border-neutral-100 bg-neutral-50 mt-20">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <div class="text-center text-neutral-500 text-sm">
+        <p>© 2024 GenAI Platform. 基于 Next.js 和 Tailwind CSS 构建</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
