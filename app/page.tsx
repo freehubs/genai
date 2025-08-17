@@ -61,9 +61,9 @@ const itemVariants = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 glass border-b border-white/20">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -108,17 +108,13 @@ export default function HomePage() {
           >
             {apps.map((app, index) => (
               <motion.div key={app.id} variants={itemVariants}>
-                <Card className={`bento-card h-full ${app.disabled ? 'opacity-60' : 'hover:scale-105'} transition-all duration-300`}>
-                  <CardContent className="p-0">
+                <Card className={`h-full border-2 hover:border-blue-300 transition-all duration-300 ${app.disabled ? 'opacity-60' : 'hover:shadow-lg'}`}>
+                  <CardContent className="p-6">
                     {app.disabled ? (
-                      <div className={`h-full bg-gradient-to-br ${app.bgGradient} p-8 rounded-3xl`}>
-                        <AppCardContent app={app} />
-                      </div>
+                      <AppCardContent app={app} />
                     ) : (
                       <Link href={app.href} className="block h-full">
-                        <div className={`h-full bg-gradient-to-br ${app.bgGradient} p-8 rounded-3xl hover:shadow-lg transition-all duration-300`}>
-                          <AppCardContent app={app} />
-                        </div>
+                        <AppCardContent app={app} />
                       </Link>
                     )}
                   </CardContent>
@@ -165,13 +161,13 @@ function AppCardContent({ app }: { app: typeof apps[0] }) {
   
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${app.gradient} flex items-center justify-center`}>
-          <Icon className="w-7 h-7 text-white" />
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${app.gradient} flex items-center justify-center`}>
+          <Icon className="w-6 h-6 text-white" />
         </div>
         {!app.disabled && (
-          <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
@@ -179,7 +175,7 @@ function AppCardContent({ app }: { app: typeof apps[0] }) {
       </div>
       
       <div className="flex-1">
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">{app.title}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{app.title}</h3>
         <p className="text-gray-600 text-sm leading-relaxed">{app.description}</p>
       </div>
     </div>
