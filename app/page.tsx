@@ -7,36 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AuthButton } from '@/components/auth/auth-button'
 
-const apps = [
-  {
-    id: 'timeline',
-    title: '时间线',
-    description: '管理你的主题与事件，支持多端同步与搜索筛选',
-    icon: Clock,
-    href: '/timeline',
-    gradient: 'from-blue-500 to-cyan-500',
-    bgGradient: 'from-blue-50 to-cyan-50',
-  },
-  {
-    id: 'mindcards',
-    title: '心智模型卡片',
-    description: '收集和整理心智模型，提升思维能力',
-    icon: Brain,
-    href: '/mindcards',
-    gradient: 'from-purple-500 to-pink-500',
-    bgGradient: 'from-purple-50 to-pink-50',
-  },
-  {
-    id: 'coming-soon',
-    title: '更多应用',
-    description: '敬请期待更多智能应用',
-    icon: Plus,
-    href: '#',
-    gradient: 'from-gray-400 to-gray-500',
-    bgGradient: 'from-gray-50 to-gray-100',
-    disabled: true,
-  },
-]
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,18 +32,18 @@ const itemVariants = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-white/20">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">G</span>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">G</span>
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">GenAI Platform</h1>
-                <p className="text-sm text-gray-600">智能应用集合</p>
+                <h1 className="text-2xl font-bold text-gray-900">GenAI Platform</h1>
+                <p className="text-sm text-gray-600 font-medium">智能应用集合</p>
               </div>
             </div>
             <AuthButton />
@@ -81,72 +52,152 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
+      <main className="max-w-7xl mx-auto px-6 py-16">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="max-w-6xl mx-auto"
+          className="space-y-20"
         >
           {/* Hero Section */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              智能应用
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                集合平台
-              </span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              基于现代技术栈构建的应用集合，帮助你更好地管理时间线、整理知识和提升效率
-            </p>
+          <motion.div variants={itemVariants} className="text-center space-y-8">
+            <div className="space-y-6">
+              <h2 className="text-5xl md:text-7xl font-bold text-gray-900 leading-tight">
+                智能应用
+                <br />
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  集合平台
+                </span>
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
+                基于现代技术栈构建的应用集合，帮助你更好地管理时间线、整理知识和提升效率
+              </p>
+            </div>
           </motion.div>
 
-          {/* Apps Grid */}
+          {/* Bento Grid */}
           <motion.div
             variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-12 gap-4 md:gap-6 auto-rows-fr"
+            style={{ gridTemplateRows: 'repeat(3, minmax(200px, auto))' }}
           >
-            {apps.map((app, index) => (
-              <motion.div key={app.id} variants={itemVariants}>
-                <Card className={`h-full border-2 hover:border-blue-300 transition-all duration-300 ${app.disabled ? 'opacity-60' : 'hover:shadow-lg'}`}>
-                  <CardContent className="p-6">
-                    {app.disabled ? (
-                      <AppCardContent app={app} />
-                    ) : (
-                      <Link href={app.href} className="block h-full">
-                        <AppCardContent app={app} />
-                      </Link>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            {/* Timeline App - Large */}
+            <motion.div variants={itemVariants} className="col-span-12 md:col-span-8 row-span-2">
+              <Link href="/timeline" className="block h-full">
+                <div className="h-full bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10 h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                        <Clock className="w-8 h-8" />
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <h3 className="text-3xl font-bold">时间线</h3>
+                      <p className="text-blue-100 text-lg leading-relaxed max-w-md">
+                        管理你的主题与事件，支持多端同步与搜索筛选
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Mind Cards App - Medium */}
+            <motion.div variants={itemVariants} className="col-span-12 md:col-span-4 row-span-2">
+              <Link href="/mindcards" className="block h-full">
+                <div className="h-full bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-3xl p-8 text-white relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-10 h-full flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                        <Brain className="w-8 h-8" />
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-bold">心智模型卡片</h3>
+                      <p className="text-purple-100 text-base leading-relaxed">
+                        收集和整理心智模型，提升思维能力
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Coming Soon - Small */}
+            <motion.div variants={itemVariants} className="col-span-12 md:col-span-6 row-span-1">
+              <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl p-6 flex items-center justify-center group">
+                <div className="text-center space-y-3">
+                  <div className="w-12 h-12 bg-gray-300 rounded-2xl flex items-center justify-center mx-auto">
+                    <Plus className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-700">更多应用</h3>
+                    <p className="text-sm text-gray-500">敬请期待</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Features Grid - Small */}
+            <motion.div variants={itemVariants} className="col-span-12 md:col-span-6 row-span-1">
+              <div className="h-full grid grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-emerald-300 rounded-xl flex items-center justify-center mb-2">
+                    <Clock className="w-5 h-5 text-emerald-700" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-emerald-800">统一认证</h4>
+                </div>
+                <div className="bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-amber-300 rounded-xl flex items-center justify-center mb-2">
+                    <Brain className="w-5 h-5 text-amber-700" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-amber-800">响应式设计</h4>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* Features Section */}
-          <motion.div variants={itemVariants} className="mt-20 text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-8">平台特性</h3>
+          <motion.div variants={itemVariants} className="text-center space-y-12">
+            <div className="space-y-4">
+              <h3 className="text-3xl font-bold text-gray-900">平台特性</h3>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                精心设计的用户体验，让每个功能都触手可及
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-blue-600" />
+              <div className="group p-8 rounded-3xl bg-white/60 backdrop-blur-sm border border-white/20 hover:bg-white/80 transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Clock className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-lg font-semibold mb-2">统一认证</h4>
-                <p className="text-gray-600">所有应用共享统一的用户账户系统</p>
+                <h4 className="text-xl font-semibold mb-3 text-gray-900">统一认证</h4>
+                <p className="text-gray-600 leading-relaxed">所有应用共享统一的用户账户系统，一次登录，畅享所有功能</p>
               </div>
-              <div className="p-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Brain className="w-6 h-6 text-purple-600" />
+              <div className="group p-8 rounded-3xl bg-white/60 backdrop-blur-sm border border-white/20 hover:bg-white/80 transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Brain className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-lg font-semibold mb-2">响应式设计</h4>
-                <p className="text-gray-600">完美适配移动端和桌面端</p>
+                <h4 className="text-xl font-semibold mb-3 text-gray-900">响应式设计</h4>
+                <p className="text-gray-600 leading-relaxed">完美适配移动端和桌面端，无论在哪里都能获得最佳体验</p>
               </div>
-              <div className="p-6">
-                <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Plus className="w-6 h-6 text-green-600" />
+              <div className="group p-8 rounded-3xl bg-white/60 backdrop-blur-sm border border-white/20 hover:bg-white/80 transition-all duration-300 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Plus className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-lg font-semibold mb-2">可扩展架构</h4>
-                <p className="text-gray-600">支持快速添加新的应用模块</p>
+                <h4 className="text-xl font-semibold mb-3 text-gray-900">可扩展架构</h4>
+                <p className="text-gray-600 leading-relaxed">支持快速添加新的应用模块，让平台随着你的需求不断成长</p>
               </div>
             </div>
           </motion.div>
@@ -156,28 +207,4 @@ export default function HomePage() {
   )
 }
 
-function AppCardContent({ app }: { app: typeof apps[0] }) {
-  const Icon = app.icon
-  
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${app.gradient} flex items-center justify-center`}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-        {!app.disabled && (
-          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex-1">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{app.title}</h3>
-        <p className="text-gray-600 text-sm leading-relaxed">{app.description}</p>
-      </div>
-    </div>
-  )
-}
+
