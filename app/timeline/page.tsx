@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthButton } from '@/components/auth/auth-button'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { CreateTopicDialog } from '@/components/timeline/create-topic-dialog'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
@@ -38,7 +39,7 @@ export default function TimelinePage() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null)
         if (session?.user) {
           loadTopics()

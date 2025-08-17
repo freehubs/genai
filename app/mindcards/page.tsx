@@ -6,6 +6,7 @@ import { Brain, Plus, Search, ArrowLeft, Tag, ExternalLink, ChevronDown, Chevron
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { AuthButton } from '@/components/auth/auth-button'
 import { CreateTopicDialog } from '@/components/mindcards/create-topic-dialog'
 import { CreateCardDialog } from '@/components/mindcards/create-card-dialog'
@@ -44,7 +45,7 @@ export default function MindCardsPage() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null)
         if (session?.user) {
           loadTopics()
