@@ -12,6 +12,7 @@ import { CreateTopicDialog } from '@/components/mindcards/create-topic-dialog'
 import { CreateCardDialog } from '@/components/mindcards/create-card-dialog'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
+import { User } from '@supabase/supabase-js'
 
 type MindTopic = Database['public']['Tables']['mind_topics']['Row']
 type MindCard = Database['public']['Tables']['mind_cards']['Row']
@@ -26,7 +27,7 @@ export default function MindCardsPage() {
   const [allTags, setAllTags] = useState<string[]>([])
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [showCreateTopic, setShowCreateTopic] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
 

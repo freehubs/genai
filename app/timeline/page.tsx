@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthButton } from '@/components/auth/auth-button'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
 import { CreateTopicDialog } from '@/components/timeline/create-topic-dialog'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
@@ -21,7 +21,7 @@ export default function TimelinePage() {
   const [events, setEvents] = useState<TimelineEvent[]>([])
   const [searchYear, setSearchYear] = useState('')
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [showCreateTopic, setShowCreateTopic] = useState(false)
 
   const supabase = createClient()
