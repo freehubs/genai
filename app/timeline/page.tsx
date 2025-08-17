@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Clock, Plus, Search, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -176,12 +175,10 @@ export default function TimelinePage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {topics.map((topic) => (
-                  <motion.button
+                  <button
                     key={topic.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleTopicSelect(topic)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                       selectedTopic?.id === topic.id
                         ? 'bg-blue-100 text-blue-900'
                         : 'hover:bg-gray-100'
@@ -191,7 +188,7 @@ export default function TimelinePage() {
                     <div className="text-sm text-gray-500">
                       {new Date(topic.created_at).toLocaleDateString()}
                     </div>
-                  </motion.button>
+                  </button>
                 ))}
                 
                 {topics.length === 0 && (
@@ -245,11 +242,13 @@ export default function TimelinePage() {
             <div className="space-y-6">
               {events.length > 0 ? (
                 events.map((event, index) => (
-                  <motion.div
+                  <div
                     key={event.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    className="opacity-0 animate-fade-in-up"
+                    style={{
+                      animationDelay: `${index * 100}ms`,
+                      animationFillMode: 'forwards'
+                    }}
                   >
                     <Card className="hover:shadow-md transition-shadow">
                       <CardContent className="p-6">
@@ -294,7 +293,7 @@ export default function TimelinePage() {
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </div>
                 ))
               ) : (
                 <Card>

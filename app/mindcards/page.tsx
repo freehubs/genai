@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, Plus, Search, ArrowLeft, Tag, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -210,12 +209,10 @@ export default function MindCardsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {topics.map((topic) => (
-                  <motion.button
+                  <button
                     key={topic.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleTopicSelect(topic)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                       selectedTopic?.id === topic.id
                         ? 'bg-purple-100 text-purple-900'
                         : 'hover:bg-gray-100'
@@ -228,7 +225,7 @@ export default function MindCardsPage() {
                     <div className="text-xs text-gray-400 mt-2">
                       {new Date(topic.created_at).toLocaleDateString()}
                     </div>
-                  </motion.button>
+                  </button>
                 ))}
                 
                 {topics.length === 0 && (
@@ -303,23 +300,22 @@ export default function MindCardsPage() {
 
                 {/* Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  <AnimatePresence>
-                    {filteredCards.map((card, index) => (
-                      <motion.div
-                        key={card.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <MindCardComponent
-                          card={card}
-                          isExpanded={expandedCard === card.id}
-                          onToggleExpansion={() => toggleCardExpansion(card.id)}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                  {filteredCards.map((card, index) => (
+                    <div
+                      key={card.id}
+                      className="opacity-0 animate-fade-in-up"
+                      style={{
+                        animationDelay: `${index * 100}ms`,
+                        animationFillMode: 'forwards'
+                      }}
+                    >
+                      <MindCardComponent
+                        card={card}
+                        isExpanded={expandedCard === card.id}
+                        onToggleExpansion={() => toggleCardExpansion(card.id)}
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {filteredCards.length === 0 && cards.length > 0 && (
@@ -436,75 +432,71 @@ function MindCardComponent({
           )}
 
           {/* Expanded Content */}
-          <AnimatePresence>
-            {isExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-4 border-t border-gray-100 pt-4"
-              >
-                {/* Key Points */}
-                {card.key_points && card.key_points.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">关键要点</h4>
-                    <ul className="space-y-1">
-                      {card.key_points.map((point, index) => (
-                        <li key={index} className="text-sm text-gray-600 leading-relaxed">
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+          <div
+            className={`overflow-hidden transition-all duration-300 ${
+              isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="space-y-4 border-t border-gray-100 pt-4">
+              {/* Key Points */}
+              {card.key_points && card.key_points.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">关键要点</h4>
+                  <ul className="space-y-1">
+                    {card.key_points.map((point, index) => (
+                      <li key={index} className="text-sm text-gray-600 leading-relaxed">
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-                {/* Examples */}
-                {card.examples && card.examples.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">应用示例</h4>
-                    <ul className="space-y-1">
-                      {card.examples.map((example, index) => (
-                        <li key={index} className="text-sm text-gray-600 leading-relaxed">
-                          {example}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              {/* Examples */}
+              {card.examples && card.examples.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">应用示例</h4>
+                  <ul className="space-y-1">
+                    {card.examples.map((example, index) => (
+                      <li key={index} className="text-sm text-gray-600 leading-relaxed">
+                        {example}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-                {/* Conclusion */}
-                {card.conclusion && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">总结</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {card.conclusion}
-                    </p>
-                  </div>
-                )}
+              {/* Conclusion */}
+              {card.conclusion && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">总结</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {card.conclusion}
+                  </p>
+                </div>
+              )}
 
-                {/* Source */}
-                {card.source && (
-                  <div className="flex items-center space-x-2 pt-2 border-t border-gray-100">
-                    <span className="text-xs text-gray-500">来源:</span>
-                    {card.source.startsWith('http') ? (
-                      <a
-                        href={card.source}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-purple-600 hover:text-purple-800 flex items-center space-x-1"
-                      >
-                        <span>查看原文</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
-                      <span className="text-xs text-gray-600">{card.source}</span>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {/* Source */}
+              {card.source && (
+                <div className="flex items-center space-x-2 pt-2 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">来源:</span>
+                  {card.source.startsWith('http') ? (
+                    <a
+                      href={card.source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-purple-600 hover:text-purple-800 flex items-center space-x-1"
+                    >
+                      <span>查看原文</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-600">{card.source}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
