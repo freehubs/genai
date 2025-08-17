@@ -35,15 +35,14 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">G</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">GenAI Platform</h1>
-                <p className="text-sm text-gray-600 font-medium">智能应用集合</p>
+            <div className="flex items-center">
+              <div className="leading-tight">
+                <span className="block text-lg md:text-xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  GenAI Platform
+                </span>
+                <span className="block text-xs md:text-sm text-gray-600">智能应用集合</span>
               </div>
             </div>
             <AuthButton />
@@ -61,15 +60,15 @@ export default function HomePage() {
         >
           {/* Hero Section */}
           <motion.div variants={itemVariants} className="text-center space-y-8">
-            <div className="space-y-6">
-              <h2 className="text-5xl md:text-7xl font-bold text-gray-900 leading-tight">
+            <div className="space-y-4 md:space-y-6">
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
                 智能应用
                 <br />
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                   集合平台
                 </span>
               </h2>
-              <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
+              <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-medium">
                 基于现代技术栈构建的应用集合，帮助你更好地管理时间线、整理知识和提升效率
               </p>
             </div>
