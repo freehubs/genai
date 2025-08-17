@@ -419,12 +419,138 @@
       console.error('Failed to initialize Supabase:', error);
     }
     
-    // 页面加载时检查用户状态
+    // 全局变量
+    let loginBtn, loginModal, closeModalBtn, loginForm, logoutBtn;
+    
+    // 页面加载时检查用户状态和初始化事件
     document.addEventListener('DOMContentLoaded', async function() {
+      console.log('DOM loaded, initializing...');
+      
+      // 初始化DOM元素引用
+      initializeElements();
+      
+      // 绑定事件
+      bindEvents();
+      
+      // 检查用户状态
       if (supabase) {
         await checkUser();
       }
     });
+    
+    // 初始化DOM元素引用
+    function initializeElements() {
+      loginBtn = document.getElementById('loginBtn');
+      loginModal = document.getElementById('loginModal');
+      closeModalBtn = document.getElementById('closeModal');
+      loginForm = document.getElementById('loginForm');
+      logoutBtn = document.getElementById('logoutBtn');
+      
+      console.log('Elements initialized:', {
+        loginBtn: !!loginBtn,
+        loginModal: !!loginModal,
+        closeModalBtn: !!closeModalBtn,
+        loginForm: !!loginForm,
+        logoutBtn: !!logoutBtn
+      });
+    }
+    
+    // 绑定事件
+    function bindEvents() {
+      if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
+          console.log('Login button clicked');
+          openModal();
+        });
+      }
+      
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+      }
+      
+      if (loginModal) {
+        loginModal.addEventListener('click', function(e) {
+          if (e.target === loginModal) {
+            closeModal();
+          }
+        });
+      }
+      
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          console.log('Form submitted');
+          handleFormSubmit();
+        });
+      }
+      
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+      }
+      
+      // ESC键关闭模态框
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && loginModal && loginModal.classList.contains('show')) {
+          closeModal();
+        }
+      });
+    }
+    
+    // 打开模态框
+    function openModal() {
+      if (loginModal) {
+        loginModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        console.log('Modal opened');
+      } else {
+        console.error('Login modal not found');
+      }
+    }
+    
+    // 关闭模态框
+    function closeModal() {
+      if (loginModal) {
+        loginModal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        // 清空表单和消息
+        if (loginForm) {
+          loginForm.reset();
+        }
+        const messageArea = document.getElementById('messageArea');
+        if (messageArea) {
+          messageArea.classList.add('hidden');
+        }
+        console.log('Modal closed');
+      }
+    }
+    
+    // 处理表单提交
+    function handleFormSubmit() {
+      const email = document.getElementById('email')?.value;
+      const password = document.getElementById('password')?.value;
+      
+      if (!email || !password) {
+        showMessage('请填写邮箱和密码', 'error');
+        return;
+      }
+      
+      // 显示加载状态
+      const submitBtn = document.getElementById('loginSubmitBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const btnLoading = document.getElementById('loginBtnLoading');
+      
+      if (btnText) btnText.classList.add('hidden');
+      if (btnLoading) btnLoading.classList.remove('hidden');
+      if (submitBtn) submitBtn.disabled = true;
+      
+      // 执行登录
+      handleEmailLogin(email, password).finally(() => {
+        // 恢复按钮状态
+        if (btnText) btnText.classList.remove('hidden');
+        if (btnLoading) btnLoading.classList.add('hidden');
+        if (submitBtn) submitBtn.disabled = false;
+      });
+    }
     
     // 检查用户登录状态
     async function checkUser() {
@@ -443,15 +569,22 @@
     
     // 显示用户信息
     function showUserInfo(user) {
-      document.getElementById('loginBtn').classList.add('hidden');
-      document.getElementById('userInfo').classList.remove('hidden');
-      document.getElementById('userName').textContent = user.user_metadata?.name || user.email || '用户';
+      const loginBtnElement = document.getElementById('loginBtn');
+      const userInfoElement = document.getElementById('userInfo');
+      const userNameElement = document.getElementById('userName');
+      
+      if (loginBtnElement) loginBtnElement.classList.add('hidden');
+      if (userInfoElement) userInfoElement.classList.remove('hidden');
+      if (userNameElement) userNameElement.textContent = user.user_metadata?.name || user.email || '用户';
     }
     
     // 显示登录按钮
     function showLoginButton() {
-      document.getElementById('loginBtn').classList.remove('hidden');
-      document.getElementById('userInfo').classList.add('hidden');
+      const loginBtnElement = document.getElementById('loginBtn');
+      const userInfoElement = document.getElementById('userInfo');
+      
+      if (loginBtnElement) loginBtnElement.classList.remove('hidden');
+      if (userInfoElement) userInfoElement.classList.add('hidden');
     }
     
     // GitHub OAuth 登录
@@ -527,6 +660,8 @@
     // 显示消息
     function showMessage(message, type) {
       const messageArea = document.getElementById('messageArea');
+      if (!messageArea) return;
+      
       const messageClass = type === 'error' ? 'error-message' : 'success-message';
       
       messageArea.innerHTML = `<div class="${messageClass}">${message}</div>`;
@@ -534,75 +669,11 @@
       
       // 3秒后自动隐藏
       setTimeout(() => {
-        messageArea.classList.add('hidden');
+        if (messageArea) {
+          messageArea.classList.add('hidden');
+        }
       }, 3000);
     }
-    
-    // 登录模态框功能
-    const loginBtn = document.getElementById('loginBtn');
-    const loginModal = document.getElementById('loginModal');
-    const closeModal = document.getElementById('closeModal');
-    const loginForm = document.getElementById('loginForm');
-    const logoutBtn = document.getElementById('logoutBtn');
-    
-    // 打开模态框
-    loginBtn.addEventListener('click', function() {
-      loginModal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    });
-    
-    // 关闭模态框
-    function closeModal() {
-      loginModal.classList.remove('show');
-      document.body.style.overflow = 'auto';
-      // 清空表单和消息
-      loginForm.reset();
-      document.getElementById('messageArea').classList.add('hidden');
-    }
-    
-    // 关闭模态框事件
-    closeModal.addEventListener('click', closeModal);
-    
-    // 点击模态框外部关闭
-    loginModal.addEventListener('click', function(e) {
-      if (e.target === loginModal) {
-        closeModal();
-      }
-    });
-    
-    // ESC键关闭模态框
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && loginModal.classList.contains('show')) {
-        closeModal();
-      }
-    });
-    
-    // 表单提交处理
-    loginForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      
-      // 显示加载状态
-      const submitBtn = document.getElementById('loginSubmitBtn');
-      const btnText = document.getElementById('loginBtnText');
-      const btnLoading = document.getElementById('loginBtnLoading');
-      
-      btnText.classList.add('hidden');
-      btnLoading.classList.remove('hidden');
-      submitBtn.disabled = true;
-      
-      // 执行登录
-      handleEmailLogin(email, password).finally(() => {
-        // 恢复按钮状态
-        btnText.classList.remove('hidden');
-        btnLoading.classList.add('hidden');
-        submitBtn.disabled = false;
-      });
-    });
-    
-    // 退出登录事件
-    logoutBtn.addEventListener('click', handleLogout);
   </script>
 </body>
 </html>
