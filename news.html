@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新闻卡片生成器</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#f5f5f7; color:#1d1d1f; }
+.card { background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05); padding:16px; display:flex; flex-direction:column; gap:12px; transition:transform 0.2s,box-shadow 0.2s; cursor:pointer; }
+.card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+.card-header { font-weight:700; font-size:1.25rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5e5ea; padding-bottom:6px; }
+.card-subtitle { color:#6e6e73; font-size:0.875rem; }
+.card-section { padding:8px; border-radius:12px; background:#f2f2f7; display:none; flex-direction:column; gap:6px; }
+.card-section h3 { font-weight:600; margin-bottom:4px; }
+.card-core div { padding-left:8px; }
+.card-footer { font-size:0.875rem; color:#6e6e73; display:flex; justify-content:space-between; border-top:1px solid #e5e5ea; padding-top:6px; }
+textarea,input { width:100%; border:1px solid #d1d1d6; border-radius:8px; padding:8px; }
+label { font-weight:600; }
+.section { margin-bottom:24px; padding:16px; background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05); }
+button { transition:0.2s; }
+button:hover { opacity:0.85; }
+#searchInput { margin-bottom:16px; padding:8px; border:1px solid #d1d1d6; border-radius:8px; width:100%; }
+</style>
+</head>
+<body class="p-8">
+<h1 class="text-3xl font-bold mb-8">新闻卡片生成器</h1>
+
+<!-- 搜索框 -->
+<input id="searchInput" type="text" placeholder="搜索卡片..." oninput="filterCards()">
+
+<!-- 文本输入区 -->
+<div class="section">
+<h2 class="text-xl font-bold mb-4">批量文本输入（旧版兼容）</h2>
+<textarea id="bulkInput" rows="6" placeholder="每条新闻换行"></textarea>
+<button onclick="parseTextNews()" class="mt-4 px-4 py-2 bg-black text-white rounded-lg">生成文本卡片</button>
+</div>
+
+<!-- JSON 输入区 -->
+<div class="section">
+<h2 class="text-xl font-bold mb-4">JSON 输入（新版推荐）</h2>
+<textarea id="jsonInput" rows="8" placeholder="粘贴新闻 JSON 数组，每条新闻包含 title, subtitle, summary, core, impact, nextStep, tags, source"></textarea>
+<button onclick="parseJSONNews()" class="mt-4 px-4 py-2 bg-black text-white rounded-lg">生成 JSON 卡片</button>
+</div>
+
+<!-- 卡片容器 -->
+<div id="cardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8"></div>
+
+<script>
+// 添加单条卡片
+function addCardFromData(data){
+  const card=document.createElement('div');
+  card.className='card';
+  card.innerHTML=`
+    <div class="card-header">
+      <span>${data.title}</span>
+      <span class="card-subtitle">${data.subtitle}</span>
+    </div>
+
+    <div class="card-section card-summary" style="display:block;">
+      <h3>摘要</h3>
+      <p>${data.summary}</p>
+    </div>
+
+    <div class="card-section card-core">
+      <h3>核心信息</h3>
+      ${data.core.map(i=>`<div>• ${i}</div>`).join('')}
+    </div>
+
+    <div class="card-section card-impact">
+      <h3>影响</h3>
+      <p>${data.impact}</p>
+    </div>
+
+    <div class="card-section card-next">
+      <h3>下一步</h3>
+      <p>${data.nextStep}</p>
+    </div>
+
+    <div class="card-footer">
+      <span>${data.tags}</span>
+      <span>来源：${data.source}</span>
+    </div>
+  `;
+  // 点击折叠/展开
+  card.querySelector('.card-header').addEventListener('click',()=>{
+    const sections=card.querySelectorAll('.card-section:not(.card-summary)');
+    sections.forEach(sec=>{
+      sec.style.display=sec.style.display==='flex'?'none':'flex';
+    });
+  });
+  document.getElementById('cardsContainer').prepend(card);
+}
+
+// JSON 输入解析
+function parseJSONNews(){
+  const input=document.getElementById('jsonInput').value;
+  if(!input) return alert('请输入 JSON 数据');
+  let dataArray=[];
+  try { dataArray=JSON.parse(input); } catch(e){ return alert('JSON 格式错误'); }
+  dataArray.forEach(item=>addCardFromData(item));
+  document.getElementById('jsonInput').value='';
+}
+
+// 文本输入解析（旧版兼容）
+function parseTextNews(){
+  const text=document.getElementById('bulkInput').value;
+  if(!text) return alert('请输入文本数据');
+  const items=text.split(/\n/).map(t=>t.trim()).filter(Boolean);
+
+  items.forEach(news=>{
+    let emoji='📢';
+    const lower=news.toLowerCase();
+    if(/涨|上涨|创新高/.test(news)) emoji='📈';
+    else if(/跌|下滑|亏损|危机/.test(news)) emoji='⚠️';
+    else if(/ai|科技|chip|半导体/.test(lower)) emoji='🤖';
+    else if(/美俄|全球|international|world/.test(lower)) emoji='🌏';
+
+    let core=news.match(/([A-Z][a-zA-Z0-9]*|[0-9]+%?|[\u4e00-\u9fa5]{2,10}[公司股指])/g)||[];
+    core=core.slice(0,3);
+
+    const titleText=news.replace(/\n/g,'').slice(0,12);
+    const data={
+      title:`${emoji} ${titleText}...`,
+      subtitle:'美股 · 今日',
+      summary:news,
+      core:core.length?core:news.split(/[,.，。;]/).filter(s=>s.length>5).slice(0,3),
+      impact:'市场关注，投资者需留意风险',
+      nextStep:'关注后续数据及公司动态',
+      tags:'#美股 #财经',
+      source:'来源未知'
+    };
+    addCardFromData(data);
+  });
+  document.getElementById('bulkInput').value='';
+}
+
+// 搜索过滤
+function filterCards(){
+  const query=document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#cardsContainer .card').forEach(card=>{
+    const text=card.innerText.toLowerCase();
+    card.style.display=text.includes(query)?'flex':'none';
+  });
+}
+</script>
+</body>
+</html>
