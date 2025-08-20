@@ -1,0 +1,18 @@
+{
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/mindcards",
+      "dest": "/public/mindcards.html"
+    },
+    {
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
