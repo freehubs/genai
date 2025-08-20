@@ -1,16 +1,8 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/mindcards",
-      "dest": "/public/mindcards.html"
-    },
-    {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
+      "source": "/mindcards",
+      "destination": "/public/mindcards.html"
     }
   ],
   "cleanUrls": true,
