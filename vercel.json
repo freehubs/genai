@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/mindcards",
-      "destination": "/public/mindcards.html"
-    }
-  ]
-}
