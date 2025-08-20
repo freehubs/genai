@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>思维模型卡片库 - GenAI Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    .text-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .mind-model-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+    .mind-model-card:hover {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .difficulty-1 { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+    .difficulty-2 { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+    .difficulty-3 { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .difficulty-4 { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); }
+    .difficulty-5 { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); }
+    .tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: rgba(59, 130, 246, 0.1);
+      color: #2563eb;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin: 0.125rem;
+      transition: all 0.2s ease;
+    }
+    .tag:hover {
+      background: rgba(59, 130, 246, 0.2);
+      transform: scale(1.05);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+    }
+    .modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      transform: scale(0.9);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    .modal.show .modal-content {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .close {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6b7280;
+      transition: color 0.2s ease;
+    }
+    .close:hover {
+      color: #374151;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-white text-neutral-900 antialiased">
+  <!-- 顶栏 -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-neutral-100">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
+      <div class="flex-1 flex items-center gap-2">
+        <a href="/static-home.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div class="w-8 h-8 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white grid place-items-center">
+            ✨
+          </div>
+          <h1 class="text-xl md:text-2xl font-semibold tracking-tight">GenAI Platform</h1>
+        </a>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="loginBtn" class="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50 transition-colors">
+          登录
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容 -->
+  <main class="mx-auto max-w-6xl px-3 sm:px-4 md:px-6 lg:px-8 py-8">
+    <!-- 页面标题 -->
+    <section class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-light text-neutral-900 leading-tight tracking-tight mb-4">
+        思维模型
+        <br />
+        <span class="text-gradient font-medium">卡片库</span>
+      </h1>
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed font-light">
+        收集和整理各种思维模型，提升你的思考能力和决策质量
+      </p>
+    </section>
+
+    <!-- 搜索和筛选 -->
+    <section class="mb-8">
+      <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div class="flex-1 max-w-md">
+          <div class="relative">
+            <input type="text" id="searchInput" placeholder="搜索思维模型..." 
+                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl pl-12 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+            <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <select id="categoryFilter" class="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">所有分类</option>
+            <option value="决策">决策</option>
+            <option value="分析">分析</option>
+            <option value="创意">创意</option>
+            <option value="学习">学习</option>
+            <option value="沟通">沟通</option>
+            <option value="领导力">领导力</option>
+          </select>
+          <select id="difficultyFilter" class="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">所有难度</option>
+            <option value="1">初级</option>
+            <option value="2">中级</option>
+            <option value="3">高级</option>
+            <option value="4">专家</option>
+            <option value="5">大师</option>
+          </select>
+          <button id="addModelBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium flex items-center gap-2">
+            <span>+</span>
+            <span class="hidden sm:inline">添加模型</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 思维模型卡片网格 -->
+    <section class="mb-12">
+      <div id="cardsContainer" class="cards-grid">
+        <!-- 卡片将通过JavaScript动态生成 -->
+      </div>
+      
+      <!-- 空状态 -->
+      <div id="emptyState" class="hidden text-center py-16">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-4xl">🧠</span>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">还没有思维模型</h3>
+        <p class="text-gray-600 mb-6">开始添加你的第一个思维模型吧</p>
+        <button onclick="openAddModal()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium">
+          添加第一个模型
+        </button>
+      </div>
+    </section>
+
+    <!-- 统计信息 -->
+    <section class="text-center">
+      <div class="inline-flex items-center space-x-8 text-neutral-500 bg-neutral-100 px-6 py-3 rounded-full">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📚</span>
+          <span class="text-sm">总计: <span id="totalCount" class="font-medium">0</span></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⭐</span>
+          <span class="text-sm">收藏: <span id="favoriteCount" class="font-medium">0</span></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🔄</span>
+          <span class="text-sm">待复习: <span id="reviewCount" class="font-medium">0</span></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="border-t border-neutral-100 bg-neutral-50 mt-20">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <div class="text-center text-neutral-500 text-sm">
+        <p>© 2024 GenAI Platform. 基于 Next.js 和 Tailwind CSS 构建</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 添加/编辑思维模型模态框 -->
+  <div id="modelModal" class="modal">
+    <div class="modal-content relative">
+      <span class="close" id="closeModal">&times;</span>
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-2xl text-white">🧠</span>
+        </div>
+        <h2 class="text-2xl font-semibold text-neutral-900 mb-2" id="modalTitle">添加思维模型</h2>
+        <p class="text-neutral-600">填写模型信息，帮助记忆和理解</p>
+      </div>
+      
+      <!-- 表单 -->
+      <form id="modelForm" class="space-y-4">
+        <div>
+          <label for="modelTitle" class="block text-sm font-medium text-neutral-700 mb-2">模型名称 *</label>
+          <input type="text" id="modelTitle" class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="例如：SWOT分析、5W1H法..." required>
+        </div>
+        
+        <div>
+          <label for="modelDescription" class="block text-sm font-medium text-neutral-700 mb-2">简短描述</label>
+          <input type="text" id="modelDescription" class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="一句话描述这个模型...">
+        </div>
+        
+        <div>
+          <label for="modelCategory" class="block text-sm font-medium text-neutral-700 mb-2">分类</label>
+          <select id="modelCategory" class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">选择分类</option>
+            <option value="决策">决策</option>
+            <option value="分析">分析</option>
+            <option value="创意">创意</option>
+            <option value="学习">学习</option>
+            <option value="沟通">沟通</option>
+            <option value="领导力">领导力</option>
+          </select>
+        </div>
+        
+        <div>
+          <label for="modelDifficulty" class="block text-sm font-medium text-neutral-700 mb-2">难度等级</label>
+          <select id="modelDifficulty" class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="1">1 - 初级</option>
+            <option value="2">2 - 中级</option>
+            <option value="3">3 - 高级</option>
+            <option value="4">4 - 专家</option>
+            <option value="5">5 - 大师</option>
+          </select>
+        </div>
+        
+        <div>
+          <label for="modelTags" class="block text-sm font-medium text-neutral-700 mb-2">标签</label>
+          <input type="text" id="modelTags" class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="用逗号分隔多个标签，如：决策,分析,工具">
+        </div>
+        
+        <div>
+          <label for="modelContent" class="block text-sm font-medium text-neutral-700 mb-2">详细内容 *</label>
+          <textarea id="modelContent" rows="6" class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="详细描述这个思维模型，包括使用场景、步骤、注意事项等..." required></textarea>
+        </div>
+        
+        <div class="flex items-center justify-between pt-4">
+          <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            取消
+          </button>
+          <button type="submit" id="submitBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-6 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium">
+            <span id="submitBtnText">保存</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 模拟数据
+    let mindModels = [
+      {
+        id: '1',
+        title: 'SWOT分析',
+        description: '分析优势、劣势、机会和威胁的战略工具',
+        content: 'SWOT分析是一种战略规划工具，用于评估项目的优势(Strengths)、劣势(Weaknesses)、机会(Opportunities)和威胁(Threats)。\n\n使用步骤：\n1. 列出内部优势\n2. 识别内部劣势\n3. 发现外部机会\n4. 分析外部威胁\n\n应用场景：\n- 企业战略规划\n- 项目评估\n- 个人发展规划',
+        category: '分析',
+        difficulty: 1,
+        tags: ['分析', '战略', '评估'],
+        isFavorite: true,
+        lastReviewed: '2024-01-15',
+        reviewCount: 3
+      },
+      {
+        id: '2',
+        title: '5W1H法',
+        description: '通过六个问题全面分析问题的思考方法',
+        content: '5W1H法是一种系统性的问题分析方法，通过回答六个基本问题来全面理解问题。\n\n六个问题：\n- What: 是什么？\n- Why: 为什么？\n- When: 什么时候？\n- Where: 在哪里？\n- Who: 是谁？\n- How: 怎么做？\n\n使用场景：\n- 问题分析\n- 项目规划\n- 新闻报道\n- 调查研究',
+        category: '分析',
+        difficulty: 1,
+        tags: ['分析', '问题解决', '思考'],
+        isFavorite: false,
+        lastReviewed: '2024-01-10',
+        reviewCount: 1
+      }
+    ];
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      renderCards();
+      updateStats();
+      bindEvents();
+    });
+
+    // 绑定事件
+    function bindEvents() {
+      document.getElementById('searchInput').addEventListener('input', handleSearch);
+      document.getElementById('categoryFilter').addEventListener('change', handleFilter);
+      document.getElementById('difficultyFilter').addEventListener('change', handleFilter);
+      document.getElementById('addModelBtn').addEventListener('click', openAddModal);
+      document.getElementById('closeModal').addEventListener('click', closeModal);
+      document.getElementById('modelForm').addEventListener('submit', handleFormSubmit);
+      
+      // 点击模态框外部关闭
+      document.getElementById('modelModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+      });
+    }
+
+    // 渲染卡片
+    function renderCards() {
+      const container = document.getElementById('cardsContainer');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (mindModels.length === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      
+      container.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      
+      container.innerHTML = mindModels.map(model => `
+        <div class="mind-model-card rounded-2xl p-6 cursor-pointer" onclick="viewModel('${model.id}')">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span class="text-2xl">🧠</span>
+            </div>
+            <button onclick="event.stopPropagation(); toggleFavorite('${model.id}')" class="text-2xl ${model.isFavorite ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-500 transition-colors">
+              ${model.isFavorite ? '⭐' : '☆'}
+            </button>
+          </div>
+          
+          <h3 class="text-xl font-semibold text-neutral-900 mb-2">${model.title}</h3>
+          <p class="text-neutral-600 text-sm mb-4">${model.description}</p>
+          
+          <div class="flex items-center justify-between mb-4">
+            <span class="difficulty-${model.difficulty} px-3 py-1 rounded-full text-xs font-medium">
+              难度 ${model.difficulty}
+            </span>
+            <span class="text-sm text-gray-500">${model.category}</span>
+          </div>
+          
+          <div class="mb-4">
+            ${model.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+          </div>
+          
+          <div class="flex items-center justify-between text-sm text-gray-500">
+            <span>复习 ${model.reviewCount} 次</span>
+            <span>${formatDate(model.lastReviewed)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 搜索处理
+    function handleSearch() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const filteredModels = mindModels.filter(model => 
+        model.title.toLowerCase().includes(searchTerm) ||
+        model.description.toLowerCase().includes(searchTerm) ||
+        model.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+      );
+      renderFilteredCards(filteredModels);
+    }
+
+    // 筛选处理
+    function handleFilter() {
+      const category = document.getElementById('categoryFilter').value;
+      const difficulty = document.getElementById('difficultyFilter').value;
+      
+      let filteredModels = mindModels;
+      
+      if (category) {
+        filteredModels = filteredModels.filter(model => model.category === category);
+      }
+      
+      if (difficulty) {
+        filteredModels = filteredModels.filter(model => model.difficulty === parseInt(difficulty));
+      }
+      
+      renderFilteredCards(filteredModels);
+    }
+
+    // 渲染筛选后的卡片
+    function renderFilteredCards(models) {
+      const container = document.getElementById('cardsContainer');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (models.length === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.querySelector('h3').textContent = '没有找到匹配的模型';
+        emptyState.querySelector('p').textContent = '尝试调整搜索条件或筛选器';
+        return;
+      }
+      
+      container.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      
+      container.innerHTML = models.map(model => `
+        <div class="mind-model-card rounded-2xl p-6 cursor-pointer" onclick="viewModel('${model.id}')">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span class="text-2xl">🧠</span>
+            </div>
+            <button onclick="event.stopPropagation(); toggleFavorite('${model.id}')" class="text-2xl ${model.isFavorite ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-500 transition-colors">
+              ${model.isFavorite ? '⭐' : '☆'}
+            </button>
+          </div>
+          
+          <h3 class="text-xl font-semibold text-neutral-900 mb-2">${model.title}</h3>
+          <p class="text-neutral-600 text-sm mb-4">${model.description}</p>
+          
+          <div class="flex items-center justify-between mb-4">
+            <span class="difficulty-${model.difficulty} px-3 py-1 rounded-full text-xs font-medium">
+              难度 ${model.difficulty}
+            </span>
+            <span class="text-sm text-gray-500">${model.category}</span>
+          </div>
+          
+          <div class="mb-4">
+            ${model.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+          </div>
+          
+          <div class="flex items-center justify-between text-sm text-gray-500">
+            <span>复习 ${model.reviewCount} 次</span>
+            <span>${formatDate(model.lastReviewed)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 打开添加模态框
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = '添加思维模型';
+      document.getElementById('submitBtnText').textContent = '保存';
+      document.getElementById('modelForm').reset();
+      openModal();
+    }
+
+    // 查看模型详情
+    function viewModel(id) {
+      const model = mindModels.find(m => m.id === id);
+      if (!model) return;
+      
+      alert(`查看模型: ${model.title}\n\n${model.content}`);
+    }
+
+    // 切换收藏状态
+    function toggleFavorite(id) {
+      const model = mindModels.find(m => m.id === id);
+      if (model) {
+        model.isFavorite = !model.isFavorite;
+        renderCards();
+        updateStats();
+      }
+    }
+
+    // 处理表单提交
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const formData = {
+        title: document.getElementById('modelTitle').value.trim(),
+        description: document.getElementById('modelDescription').value.trim(),
+        category: document.getElementById('modelCategory').value,
+        difficulty: parseInt(document.getElementById('modelDifficulty').value),
+        tags: document.getElementById('modelTags').value.split(',').map(tag => tag.trim()).filter(tag => tag),
+        content: document.getElementById('modelContent').value.trim()
+      };
+      
+      if (!formData.title || !formData.content) {
+        alert('请填写必填字段');
+        return;
+      }
+      
+      // 添加新模型
+      const newModel = {
+        id: Date.now().toString(),
+        ...formData,
+        isFavorite: false,
+        lastReviewed: new Date().toISOString().split('T')[0],
+        reviewCount: 0
+      };
+      mindModels.unshift(newModel);
+      
+      renderCards();
+      updateStats();
+      closeModal();
+      alert('模型添加成功！');
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      document.getElementById('totalCount').textContent = mindModels.length;
+      document.getElementById('favoriteCount').textContent = mindModels.filter(m => m.isFavorite).length;
+      document.getElementById('reviewCount').textContent = mindModels.filter(m => {
+        const lastReview = new Date(m.lastReviewed);
+        const daysSinceReview = (new Date() - lastReview) / (1000 * 60 * 60 * 24);
+        return daysSinceReview > 7;
+      }).length;
+    }
+
+    // 打开模态框
+    function openModal() {
+      document.getElementById('modelModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // 关闭模态框
+    function closeModal() {
+      document.getElementById('modelModal').classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) return '今天';
+      if (diffDays === 2) return '昨天';
+      if (diffDays <= 7) return `${diffDays - 1}天前`;
+      
+      return date.toLocaleDateString('zh-CN');
+    }
+  </script>
+</body>
+</html>
