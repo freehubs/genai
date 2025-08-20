@@ -4,7 +4,5 @@
       "source": "/mindcards",
       "destination": "/public/mindcards.html"
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  ]
 }
