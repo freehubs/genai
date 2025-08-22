@@ -584,8 +584,8 @@
 
         // 从服务器加载JSON文件
         function loadJSONFromServer() {
-            // 假设JSON文件位于 data/mindcardv2.json
-            fetch('data/mindcardv2.json')
+            // 假设JSON文件位于 mindcardv2.json
+            fetch('mindcardv2.json')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('网络响应不正常');
