@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心智模型卡片模板</title>
+    <link rel="stylesheet" href=" https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 393px;
+            position: relative;
+        }
+        
+        .card-carousel {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .cards-container {
+            display: flex;
+            transition: transform 0.5s ease;
+            width: 100%;
+        }
+        
+        .card {
+            width: 393px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .card-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .card-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .header-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .card-content {
+            padding: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eef2ff;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .section-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #4b5563;
+        }
+        
+        .example {
+            background: #eef2ff;
+            border-left: 4px solid #4f46e5;
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+        
+        .example-title {
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 5px;
+        }
+        
+        .cognitive-bias-tag {
+            display: inline-block;
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .nav-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nav-btn:hover {
+            background: #4338ca;
+        }
+        
+        .nav-btn:disabled {
+            background: #c7d2fe;
+            cursor: not-allowed;
+        }
+        
+        .card-indicators {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            margin: 0 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .indicator.active {
+            background: white;
+            transform: scale(1.2);
+        }
+        
+        .json-input-container {
+            width: 100%;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .json-input-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .json-textarea {
+            width: 100%;
+            height: 100px;
+            border: 2px solid #eef2ff;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        
+        .json-textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .import-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            width: 100%;
+        }
+        
+        .import-btn:hover {
+            background: #4338ca;
+        }
+        
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+        }
+        
+        @media (max-width: 393px) {
+            .container {
+                width: 100%;
+            }
+            
+            .card {
+                width: 100%;
+            }
+        }
+        
+        /* 自定义滚动条 */
+        .card-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .card-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .card-content::-webkit-scrollbar-thumb {
+            background: #c7d2fe;
+            border-radius: 10px;
+        }
+        
+        .card-content::-webkit-scrollbar-thumb:hover {
+            background: #a5b4fc;
+        }
+    </style>
+</head>
+<body>
+    <div class="json-input-container">
+        <div class="json-input-title">导入JSON数据</div>
+        <textarea class="json-textarea" placeholder="粘贴JSON数据到这里..."></textarea>
+        <button class="import-btn">导入数据并生成卡片</button>
+    </div>
+
+    <div class="container">
+        <div class="card-carousel">
+            <div class="cards-container">
+                <!-- 卡片将由JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn" id="prev-btn" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <div class="card-indicators">
+                <!-- 指示器将由JavaScript动态生成 -->
+            </div>
+            
+            <button class="nav-btn" id="next-btn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="footer-note">© 2025 Deepseek & BreaklmLab</div>
+
+    <script>
+        // 示例JSON数据
+        const sampleData = [
+            {
+                title: "确认偏误",
+                subtitle: "倾向于寻找支持自己观点的信息",
+                icon: "search",
+                description: "确认偏误是指人们倾向于寻找、解释和记忆信息来确认自己已有的信念或假设。",
+                example: "投资者只关注支持自己投资决策的信息，忽略负面新闻。",
+                importance: 90,
+                tags: ["决策偏差", "信息处理"]
+            },
+            {
+                title: "沉没成本谬误",
+                subtitle: "因已投入成本而继续投入更多",
+                icon: "dollar-sign",
+                description: "沉没成本谬误是指人们倾向于继续投入资源到失败的项目中，仅仅因为已经投入了很多。",
+                example: "继续观看不喜欢的电影只是因为已经买了票。",
+                importance: 75,
+                tags: ["决策偏差", "资源分配"]
+            },
+            {
+                title: "幸存者偏差",
+                subtitle: "只关注成功案例而忽略失败案例",
+                icon: "user-check",
+                description: "幸存者偏差是指只关注成功的例子，而忽略那些没有'幸存'的例子，导致错误结论。",
+                example: "认为创业很容易，因为只听说过成功的企业家故事。",
+                importance: 85,
+                tags: ["信息偏差", "数据解读"]
+            }
+        ];
+
+        // 当前卡片索引
+        let currentIndex = 0;
+        let cardsData = [];
+
+        // DOM元素
+        const cardsContainer = document.querySelector('.cards-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const indicatorsContainer = document.querySelector('.card-indicators');
+        const jsonTextarea = document.querySelector('.json-textarea');
+        const importBtn = document.querySelector('.import-btn');
+
+        // 初始化
+        function init() {
+            // 设置示例数据
+            jsonTextarea.value = JSON.stringify(sampleData, null, 2);
+            importData();
+            
+            // 添加事件监听器
+            prevBtn.addEventListener('click', showPreviousCard);
+            nextBtn.addEventListener('click', showNextCard);
+            importBtn.addEventListener('click', importData);
+        }
+
+        // 导入JSON数据
+        function importData() {
+            try {
+                const jsonData = JSON.parse(jsonTextarea.value);
+                if (Array.isArray(jsonData) && jsonData.length > 0) {
+                    cardsData = jsonData;
+                    renderCards();
+                    updateNavigation();
+                } else {
+                    alert('请输入有效的JSON数组数据');
+                }
+            } catch (error) {
+                alert('JSON解析错误: ' + error.message);
+            }
+        }
+
+        // 渲染卡片
+        function renderCards() {
+            cardsContainer.innerHTML = '';
+            indicatorsContainer.innerHTML = '';
+            
+            cardsData.forEach((data, index) => {
+                // 创建卡片
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="header-icon">
+                            <i class="fas fa-${data.icon || 'brain'}"></i>
+                        </div>
+                        <h1 class="card-title">${data.title}</h1>
+                        <p class="card-subtitle">${data.subtitle}</p>
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="section">
+                            <h2 class="section-title">
+                                <i class="fas fa-info-circle"></i>描述
+                            </h2>
+                            <div class="section-content">
+                                ${data.description}
+                                <div class="example">
+                                    <div class="example-title">例子：</div>
+                                    ${data.example}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h2 class="section-title">
+                                <i class="fas fa-tags"></i>标签
+                            </h2>
+                            <div class="section-content">
+                                ${data.tags.map(tag => `<span class="cognitive-bias-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                cardsContainer.appendChild(card);
+                
+                // 创建指示器
+                const indicator = document.createElement('div');
+                indicator.className = `indicator ${index === 0 ? 'active' : ''}`;
+                indicator.addEventListener('click', () => showCard(index));
+                indicatorsContainer.appendChild(indicator);
+            });
+            
+            // 设置容器宽度
+            cardsContainer.style.width = `${cardsData.length * 393}px`;
+        }
+
+        // 显示特定卡片
+        function showCard(index) {
+            if (index < 0 || index >= cardsData.length) return;
+            
+            currentIndex = index;
+            cardsContainer.style.transform = `translateX(-${index * 393}px)`;
+            
+            // 更新指示器
+            document.querySelectorAll('.indicator').forEach((indicator, i) => {
+                indicator.classList.toggle('active', i === index);
+            });
+            
+            // 更新按钮状态
+            updateNavigation();
+        }
+
+        // 显示上一张卡片
+        function showPreviousCard() {
+            showCard(currentIndex - 1);
+        }
+
+        // 显示下一张卡片
+        function showNextCard() {
+            showCard(currentIndex + 1);
+        }
+
+        // 更新导航按钮状态
+        function updateNavigation() {
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === cardsData.length - 1;
+        }
+
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
