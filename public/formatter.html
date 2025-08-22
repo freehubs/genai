@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>格式化工具 - GenAI Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .text-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .glass { backdrop-filter: saturate(180%) blur(20px); background: rgba(255,255,255,0.7); }
+    .mac-titlebar { height: 44px; }
+    .mac-dots { width: 12px; height: 12px; border-radius: 999px; }
+    .code-area { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.06); }
+  </style>
+</head>
+<body class="min-h-screen bg-neutral-50 text-neutral-900 antialiased">
+  <header class="sticky top-0 z-40 glass border-b border-neutral-200/60">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
+      <div class="flex-1 flex items-center gap-2">
+        <a href="../index.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <div class="w-8 h-8 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white grid place-items-center">✨</div>
+          <h1 class="text-xl md:text-2xl font-semibold tracking-tight">GenAI Platform</h1>
+        </a>
+      </div>
+      <div class="text-sm text-neutral-500">Apple 风格 · HTML / JSON 格式化</div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-3 sm:px-4 md:px-6 lg:px-8 py-8">
+    <section class="text-center mb-8">
+      <h2 class="text-4xl md:text-5xl font-light leading-tight tracking-tight mb-4">
+        <span class="text-gradient font-medium">格式化工具</span>
+      </h2>
+      <p class="text-neutral-600 max-w-2xl mx-auto leading-relaxed">一键美化 HTML 或 JSON，采用 Apple 风格的干净界面与细腻动效。</p>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-2xl shadow-soft overflow-hidden border border-neutral-200">
+        <div class="mac-titlebar px-4 flex items-center gap-2 border-b border-neutral-200/70 bg-neutral-50">
+          <div class="flex items-center gap-2 py-3">
+            <span class="mac-dots bg-red-400"></span>
+            <span class="mac-dots bg-yellow-400"></span>
+            <span class="mac-dots bg-green-400"></span>
+          </div>
+          <div class="ml-2 text-sm text-neutral-500">输入</div>
+          <div class="ml-auto flex items-center gap-2">
+            <select id="inputType" class="text-sm border border-neutral-300 rounded-lg px-2 py-1 bg-white">
+              <option value="auto">自动识别</option>
+              <option value="json">JSON</option>
+              <option value="html">HTML</option>
+            </select>
+            <button id="pasteBtn" class="text-sm px-3 py-1 rounded-lg border border-neutral-300 hover:bg-neutral-50">粘贴</button>
+            <button id="clearBtn" class="text-sm px-3 py-1 rounded-lg border border-neutral-300 hover:bg-neutral-50">清空</button>
+          </div>
+        </div>
+        <textarea id="inputArea" class="code-area w-full h-[420px] p-4 outline-none resize-none" placeholder='在此粘贴 JSON 或 HTML...'></textarea>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-soft overflow-hidden border border-neutral-200">
+        <div class="mac-titlebar px-4 flex items-center gap-2 border-b border-neutral-200/70 bg-neutral-50">
+          <div class="flex items-center gap-2 py-3">
+            <span class="mac-dots bg-red-400"></span>
+            <span class="mac-dots bg-yellow-400"></span>
+            <span class="mac-dots bg-green-400"></span>
+          </div>
+          <div class="ml-2 text-sm text-neutral-500">输出</div>
+          <div class="ml-auto flex items-center gap-2">
+            <button id="copyBtn" class="text-sm px-3 py-1 rounded-lg border border-neutral-300 hover:bg-neutral-50">复制</button>
+            <select id="indentSize" class="text-sm border border-neutral-300 rounded-lg px-2 py-1 bg-white">
+              <option value="2">缩进 2 空格</option>
+              <option value="4">缩进 4 空格</option>
+              <option value="8">缩进 8 空格</option>
+            </select>
+          </div>
+        </div>
+        <pre id="outputArea" class="code-area w-full h-[420px] p-4 overflow-auto bg-neutral-50"></pre>
+      </div>
+    </section>
+
+    <div class="mt-6 flex flex-wrap items-center gap-3 justify-center">
+      <button id="formatBtn" class="bg-black text-white px-5 py-2 rounded-full hover:bg-neutral-800 active:scale-[0.99] transition">格式化</button>
+      <button id="minifyBtn" class="bg-white text-black px-5 py-2 rounded-full border border-neutral-300 hover:bg-neutral-50 active:scale-[0.99] transition">压缩</button>
+      <button id="sampleJsonBtn" class="bg-white text-black px-5 py-2 rounded-full border border-neutral-300 hover:bg-neutral-50">示例 JSON</button>
+      <button id="sampleHtmlBtn" class="bg-white text-black px-5 py-2 rounded-full border border-neutral-300 hover:bg-neutral-50">示例 HTML</button>
+    </div>
+
+    <p id="errorMsg" class="text-center text-red-600 text-sm mt-4 hidden"></p>
+  </main>
+
+  <footer class="border-t border-neutral-200 bg-neutral-50 mt-12">
+    <div class="max-w-6xl mx-auto px-6 py-8 text-center text-neutral-500 text-sm">
+      <p>© 2024 GenAI Platform · Apple 风格格式化工具</p>
+    </div>
+  </footer>
+
+  <script>
+    const inputArea = document.getElementById('inputArea');
+    const outputArea = document.getElementById('outputArea');
+    const inputType = document.getElementById('inputType');
+    const indentSize = document.getElementById('indentSize');
+    const errorMsg = document.getElementById('errorMsg');
+
+    document.getElementById('pasteBtn').onclick = async () => {
+      try { inputArea.value = await navigator.clipboard.readText(); } catch {}
+    };
+    document.getElementById('clearBtn').onclick = () => { inputArea.value = ''; outputArea.textContent = ''; errorMsg.classList.add('hidden'); };
+    document.getElementById('copyBtn').onclick = async () => { try { await navigator.clipboard.writeText(outputArea.textContent); } catch {} };
+
+    document.getElementById('sampleJsonBtn').onclick = () => {
+      inputArea.value = '{"name":"Apple","products":[{"id":1,"name":"iPhone"},{"id":2,"name":"MacBook"}],"meta":{"year":2024}}';
+      inputType.value = 'json';
+    };
+    document.getElementById('sampleHtmlBtn').onclick = () => {
+      inputArea.value = '<div class="card"><h3>Title</h3><p>Hello <strong>World</strong></p></div>';
+      inputType.value = 'html';
+    };
+
+    document.getElementById('formatBtn').onclick = () => transform('pretty');
+    document.getElementById('minifyBtn').onclick = () => transform('minify');
+
+    function detectType(text) {
+      if (inputType.value !== 'auto') return inputType.value;
+      const t = text.trim();
+      if (!t) return 'json';
+      if (t.startsWith('<') && t.endsWith('>')) return 'html';
+      return 'json';
+    }
+
+    function transform(mode) {
+      errorMsg.classList.add('hidden');
+      const text = inputArea.value;
+      const type = detectType(text);
+      const size = parseInt(indentSize.value, 10) || 2;
+      try {
+        if (type === 'json') {
+          const obj = JSON.parse(text);
+          outputArea.textContent = mode === 'pretty' ? JSON.stringify(obj, null, size) : JSON.stringify(obj);
+        } else if (type === 'html') {
+          outputArea.textContent = mode === 'pretty' ? prettyHtml(text, size) : minifyHtml(text);
+        }
+      } catch (e) {
+        errorMsg.textContent = '解析失败：' + (e && e.message ? e.message : '未知错误');
+        errorMsg.classList.remove('hidden');
+      }
+    }
+
+    function prettyHtml(html, size) {
+      const indent = ' '.repeat(size);
+      const tokens = html
+        .replace(/>\s+</g,'><')
+        .replace(/\n/g,'')
+        .replace(/</g,'\n<')
+        .trim()
+        .split('\n');
+      let depth = 0;
+      return tokens.map(line => {
+        if (!line) return '';
+        if (/^<\//.test(line)) depth = Math.max(depth - 1, 0);
+        const padded = indent.repeat(depth) + line;
+        if (/^<[^!/?][^>]*[^/]?>$/.test(line)) depth++;
+        return padded;
+      }).join('\n');
+    }
+
+    function minifyHtml(html) {
+      return html
+        .replace(/>\s+</g, '><')
+        .replace(/\n+/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+  </script>
+</body>
+</html>
+
+
