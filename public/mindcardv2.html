@@ -26,7 +26,7 @@
         
         .app-container {
             width: 393px;
-            max-width: 900px;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -88,6 +88,52 @@
             margin-right: 10px;
         }
         
+        .input-methods {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .input-method {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .method-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .method-btn:hover {
+            background: #4338ca;
+        }
+        
+        .method-btn.file-btn {
+            background: #10b981;
+        }
+        
+        .method-btn.file-btn:hover {
+            background: #059669;
+        }
+        
+        .method-label {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
         .json-textarea {
             width: 100%;
             height: 150px;
@@ -138,11 +184,11 @@
         .cards-container {
             display: flex;
             transition: transform 0.5s ease;
-            width: 100%;
+            width: 393px;
         }
         
         .card {
-            width: 100%;
+            width: 393px;
             flex-shrink: 0;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -313,13 +359,17 @@
             font-size: 12px;
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 393px) {
             .app-container {
-                width: 100%;
+                width: 393px;
             }
             
             .card {
-                width: 100%;
+                width: 393px;
+            }
+            
+            .input-methods {
+                flex-direction: column;
             }
         }
         
@@ -371,8 +421,28 @@
 
         <div class="json-input-container">
             <div class="json-input-title"><i class="fas fa-database"></i>导入JSON数据</div>
+            
+            <div class="input-methods">
+                <div class="input-method">
+                    <button class="method-btn" id="load-sample-btn">
+                        <i class="fas fa-download"></i>加载示例数据
+                    </button>
+                    <div class="method-label">使用内置示例</div>
+                </div>
+                
+                <div class="input-method">
+                    <button class="method-btn file-btn" id="file-select-btn">
+                        <i class="fas fa-file-import"></i>选择JSON文件
+                    </button>
+                    <div class="method-label">从本地文件导入</div>
+                    <input type="file" id="json-file-input" accept=".json" style="display: none;">
+                </div>
+            </div>
+            
             <textarea class="json-textarea" placeholder="粘贴JSON数据到这里..."></textarea>
-            <button class="import-btn">导入数据并生成卡片</button>
+            <button class="import-btn" id="import-btn">
+                <i class="fas fa-play"></i>导入数据并生成卡片
+            </button>
         </div>
 
         <div class="card-view-container">
@@ -460,18 +530,77 @@
         const nextBtn = document.getElementById('next-btn');
         const indicatorsContainer = document.querySelector('.card-indicators');
         const jsonTextarea = document.querySelector('.json-textarea');
-        const importBtn = document.querySelector('.import-btn');
+        const importBtn = document.getElementById('import-btn');
+        const loadSampleBtn = document.getElementById('load-sample-btn');
+        const fileSelectBtn = document.getElementById('file-select-btn');
+        const fileInput = document.getElementById('json-file-input');
 
         // 初始化
         function init() {
+
+
             // 设置示例数据
             jsonTextarea.value = JSON.stringify(sampleData, null, 2);
-            importData();
             
+            // 在init函数中添加
+            // 从服务器加载数据（取消注释以启用）
+            loadJSONFromServer();
+
             // 添加事件监听器
             prevBtn.addEventListener('click', showPreviousCard);
             nextBtn.addEventListener('click', showNextCard);
             importBtn.addEventListener('click', importData);
+            loadSampleBtn.addEventListener('click', loadSampleData);
+            fileSelectBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // 初始渲染
+            importData();
+        }
+
+        // 加载示例数据
+        function loadSampleData() {
+            jsonTextarea.value = JSON.stringify(sampleData, null, 2);
+            importData();
+        }
+
+        // 处理文件选择
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const fileContent = e.target.result;
+                    jsonTextarea.value = fileContent;
+                    importData();
+                } catch (error) {
+                    alert('文件读取错误: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 从服务器加载JSON文件
+        function loadJSONFromServer() {
+            // 假设JSON文件位于 data/mindcardv2.json
+            fetch('data/mindcardv2.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应不正常');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    cardsData = data;
+                    renderCards();
+                    updateNavigation();
+                })
+                .catch(error => {
+                    console.error('获取JSON数据失败:', error);
+                    alert('无法从服务器加载数据: ' + error.message);
+                });
         }
 
         // 导入JSON数据
