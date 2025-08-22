@@ -1,0 +1,731 @@
+[
+  {
+    "title": "确认偏差",
+    "subtitle": "只寻找或相信支持自己观点的信息",
+    "icon": "search",
+    "description": "人们倾向于偏好证明自己观点正确的信息，忽视或贬低相反证据。",
+    "example": "股民只看看涨分析，忽略风险提示和空头观点。",
+    "importance": 93,
+    "tags": ["信息偏差", "决策偏差"]
+  },
+  {
+    "title": "锚定效应",
+    "subtitle": "首次信息成为后续判断的参照锚",
+    "icon": "anchor",
+    "description": "最初看到的数字或信息会强烈影响后续估计和判断。",
+    "example": "先听到高报价，后续谈判的期待价都会偏高。",
+    "importance": 90,
+    "tags": ["决策偏差", "行为经济学"]
+  },
+  {
+    "title": "可得性启发",
+    "subtitle": "以记忆中最容易想到的例子来判断概率",
+    "icon": "bolt",
+    "description": "容易回忆的事件被认为更常见或更可能发生。",
+    "example": "看了空难新闻就觉得坐飞机比开车更危险。",
+    "importance": 88,
+    "tags": ["风险感知", "信息偏差"]
+  },
+  {
+    "title": "代表性启发",
+    "subtitle": "以相似性而非真实概率来判断",
+    "icon": "clone",
+    "description": "根据表面相似来判断归属或概率，忽略基率。",
+    "example": "认为安静且爱书的人更可能是图书管理员而非销售。",
+    "importance": 86,
+    "tags": ["统计谬误", "决策偏差"]
+  },
+  {
+    "title": "损失厌恶",
+    "subtitle": "同等损失带来的痛苦超过收益的快乐",
+    "icon": "balance-scale",
+    "description": "人们对损失的敏感度高于同等幅度的收益。",
+    "example": "不愿卖出亏损股票，希望回本再卖。",
+    "importance": 95,
+    "tags": ["行为经济学", "风险感知"]
+  },
+  {
+    "title": "沉没成本谬误",
+    "subtitle": "因为已投入而继续投入",
+    "icon": "hourglass-half",
+    "description": "过去不可回收的投入不应影响当前决策，但人们常被其束缚。",
+    "example": "电影很无聊但因买了票就坚持看完。",
+    "importance": 92,
+    "tags": ["行为经济学", "决策偏差"]
+  },
+  {
+    "title": "事后诸葛偏差",
+    "subtitle": "事后觉得“早就知道会这样”",
+    "icon": "history",
+    "description": "事件发生后，人们高估自己事前预测的能力。",
+    "example": "公司破产后，员工都说早有迹象。",
+    "importance": 84,
+    "tags": ["记忆偏差", "决策偏差"]
+  },
+  {
+    "title": "自利性偏差",
+    "subtitle": "成功归因于自己，失败归因于外部",
+    "icon": "user-shield",
+    "description": "倾向于以有利于自尊的方式解释结果。",
+    "example": "考试高分说是努力，低分怪题难。",
+    "importance": 82,
+    "tags": ["社会心理", "归因偏差"]
+  },
+  {
+    "title": "从众效应",
+    "subtitle": "随大流以减少不确定性",
+    "icon": "users",
+    "description": "群体意见会显著影响个人判断与选择。",
+    "example": "餐厅外排长队就认为更好吃。",
+    "importance": 87,
+    "tags": ["社会心理", "决策偏差"]
+  },
+  {
+    "title": "权威偏见",
+    "subtitle": "因为权威说的就更可信",
+    "icon": "gavel",
+    "description": "对专家或权威的观点给予过度权重。",
+    "example": "名人推荐就盲目购买保健品。",
+    "importance": 85,
+    "tags": ["信息偏差", "社会心理"]
+  },
+  {
+    "title": "光环效应",
+    "subtitle": "某一优点让整体评价更好",
+    "icon": "star",
+    "description": "单一突出特质影响对整体的正面评价。",
+    "example": "长相出众的人被认为更聪明。",
+    "importance": 80,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "负面偏见",
+    "subtitle": "坏消息比好消息更刺眼",
+    "icon": "exclamation-triangle",
+    "description": "负面信息对注意与记忆的影响更大。",
+    "example": "一条差评抵消多条好评。",
+    "importance": 88,
+    "tags": ["信息偏差", "记忆偏差"]
+  },
+  {
+    "title": "乐观偏见",
+    "subtitle": "低估风险，高估成功概率",
+    "icon": "smile",
+    "description": "个体普遍认为自己更不容易遭遇不幸。",
+    "example": "创业者普遍高估成功率。",
+    "importance": 83,
+    "tags": ["风险感知", "决策偏差"]
+  },
+  {
+    "title": "悲观偏见",
+    "subtitle": "高估风险，低估成功概率",
+    "icon": "sad-tear",
+    "description": "对未来的消极期待导致机会损失。",
+    "example": "因担心失败而拒绝合理的职位变动。",
+    "importance": 72,
+    "tags": ["风险感知", "决策偏差"]
+  },
+  {
+    "title": "基本归因错误",
+    "subtitle": "过度归因人格，忽视情境因素",
+    "icon": "user",
+    "description": "解释他人行为时更偏向人格特质而非环境。",
+    "example": "别人迟到被认为懒散，而非路堵。",
+    "importance": 89,
+    "tags": ["社会心理", "归因偏差"]
+  },
+  {
+    "title": "内群体偏见",
+    "subtitle": "偏爱自己群体，贬低外群体",
+    "icon": "users-cog",
+    "description": "对本群体成员给予更多好处与信任。",
+    "example": "只愿意把机会介绍给同校校友。",
+    "importance": 78,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "外群体同质化",
+    "subtitle": "把外群体成员当作“都差不多”",
+    "icon": "layer-group",
+    "description": "认为外群体个体差异更小，刻板化严重。",
+    "example": "把不同岗位的同事都贴上“行政”的标签。",
+    "importance": 74,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "现状偏见",
+    "subtitle": "偏好维持现状而非改变",
+    "icon": "pause-circle",
+    "description": "即便改变更优，仍因为习惯和风险回避而不动。",
+    "example": "不愿更换更省钱的手机套餐。",
+    "importance": 88,
+    "tags": ["决策偏差", "行为经济学"]
+  },
+  {
+    "title": "禀赋效应",
+    "subtitle": "拥有后的主观价值被高估",
+    "icon": "gift",
+    "description": "仅因拥有某物就认为它更有价值。",
+    "example": "二手物品定价远高于市场价。",
+    "importance": 85,
+    "tags": ["行为经济学", "决策偏差"]
+  },
+  {
+    "title": "框架效应",
+    "subtitle": "相同信息的呈现方式影响决策",
+    "icon": "columns",
+    "description": "收益/损失的不同表述引发不同选择。",
+    "example": "“成功率90%”比“失败率10%”更有吸引力。",
+    "importance": 90,
+    "tags": ["信息偏差", "决策偏差"]
+  },
+  {
+    "title": "选择过载",
+    "subtitle": "选项太多反而难以做决定",
+    "icon": "th-large",
+    "description": "选择项越多，决策成本和后悔感越高。",
+    "example": "面对几十款酸奶反而不买。",
+    "importance": 76,
+    "tags": ["决策偏差", "行为经济学"]
+  },
+  {
+    "title": "鸵鸟效应",
+    "subtitle": "回避负面信息以减少焦虑",
+    "icon": "eye-slash",
+    "description": "故意忽略风险或坏消息来维持情绪稳定。",
+    "example": "账户亏损就不再打开交易软件。",
+    "importance": 79,
+    "tags": ["风险感知", "信息偏差"]
+  },
+  {
+    "title": "邓宁-克鲁格效应",
+    "subtitle": "能力越低越容易高估自己",
+    "icon": "chart-line",
+    "description": "缺乏能力的人难以识别自身能力不足。",
+    "example": "写了点脚本就自称精通编程。",
+    "importance": 84,
+    "tags": ["社会心理", "元认知"]
+  },
+  {
+    "title": "盲点偏差",
+    "subtitle": "以为自己不受偏见影响",
+    "icon": "eye",
+    "description": "容易看到别人的偏差，忽略自己的偏差。",
+    "example": "说别人有偏见，自己却同样犯错。",
+    "importance": 77,
+    "tags": ["元认知", "信息偏差"]
+  },
+  {
+    "title": "信息过载",
+    "subtitle": "过多信息降低判断质量",
+    "icon": "database",
+    "description": "吸收超出处理能力的信息导致决策瘫痪。",
+    "example": "查太多攻略反而不知道怎么选酒店。",
+    "importance": 81,
+    "tags": ["信息偏差", "决策偏差"]
+  },
+  {
+    "title": "幸存者偏差",
+    "subtitle": "只看成功样本得出偏颇结论",
+    "icon": "medal",
+    "description": "忽略失败样本导致对成功因素的误判。",
+    "example": "只采访顶尖创业者总结成功法则。",
+    "importance": 92,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "赌徒谬误",
+    "subtitle": "把独立事件误认为会相互补偿",
+    "icon": "dice",
+    "description": "认为连续出现一种结果后，下一次更可能相反。",
+    "example": "硬币连抛五次正面就觉得下一次该是反面。",
+    "importance": 83,
+    "tags": ["统计谬误", "逻辑谬误"]
+  },
+  {
+    "title": "热手谬误",
+    "subtitle": "把随机连胜误认为“手感热”",
+    "icon": "fire",
+    "description": "将连续成功归因“状态好”，忽略随机性。",
+    "example": "投篮连中几球就觉得必进。",
+    "importance": 72,
+    "tags": ["统计谬误", "决策偏差"]
+  },
+  {
+    "title": "计划谬误",
+    "subtitle": "低估完成任务所需时间与成本",
+    "icon": "calendar-check",
+    "description": "常对项目时间、预算做出过度乐观估计。",
+    "example": "以为两周搞定，其实拖了两个月。",
+    "importance": 90,
+    "tags": ["决策偏差", "项目管理"]
+  },
+  {
+    "title": "过度自信",
+    "subtitle": "对自己判断的信心超过实际准确度",
+    "icon": "thumbs-up",
+    "description": "对区间估计过窄，对预测过度确信。",
+    "example": "发言很笃定，但事实证明判断失误。",
+    "importance": 88,
+    "tags": ["元认知", "决策偏差"]
+  },
+  {
+    "title": "基率忽视",
+    "subtitle": "忽略总体概率，只看个案相似",
+    "icon": "percent",
+    "description": "忽视群体基数与先验概率，偏向具体描述。",
+    "example": "体检阳性就以为一定得病，忽略低患病率。",
+    "importance": 91,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "首因效应",
+    "subtitle": "最开始的信息影响更大",
+    "icon": "arrow-up",
+    "description": "最先获得的信息更易被记住并影响判断。",
+    "example": "面试中第一位候选人更容易被认可。",
+    "importance": 78,
+    "tags": ["记忆偏差", "信息偏差"]
+  },
+  {
+    "title": "近因效应",
+    "subtitle": "最近的信息影响更大",
+    "icon": "arrow-down",
+    "description": "最后接触的信息更容易被回忆并影响决定。",
+    "example": "复盘时更记得最后一项任务的表现。",
+    "importance": 78,
+    "tags": ["记忆偏差", "信息偏差"]
+  },
+  {
+    "title": "峰终定律",
+    "subtitle": "最强烈时刻与结尾最能决定整体评价",
+    "icon": "chart-area",
+    "description": "体验高峰与结尾的感受权重被放大。",
+    "example": "一次旅行因最后一餐很糟就被整体打差评。",
+    "importance": 80,
+    "tags": ["记忆偏差", "体验设计"]
+  },
+  {
+    "title": "单纯曝光效应",
+    "subtitle": "重复接触会提升好感",
+    "icon": "redo",
+    "description": "对反复出现的事物好感度上升。",
+    "example": "看多了某品牌广告就更愿意购买。",
+    "importance": 74,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "巴纳姆效应",
+    "subtitle": "模糊描述让人感觉“很准”",
+    "icon": "magic",
+    "description": "泛泛之谈被误认为是对自己量身定做。",
+    "example": "星座运势让人觉得“完全是我”。",
+    "importance": 77,
+    "tags": ["信息偏差", "社会心理"]
+  },
+  {
+    "title": "投射偏差",
+    "subtitle": "以为别人和自己想法相同",
+    "icon": "project-diagram",
+    "description": "把自身偏好和状态投射到他人或未来自己。",
+    "example": "现在喜欢辣就给朋友点很辣的菜。",
+    "importance": 73,
+    "tags": ["社会心理", "元认知"]
+  },
+  {
+    "title": "时间贴现/现时偏见",
+    "subtitle": "偏好眼前小利，忽视长远大利",
+    "icon": "clock",
+    "description": "对未来收益折扣过高，难以延迟满足。",
+    "example": "选择今晚刷剧而不是复习考试。",
+    "importance": 89,
+    "tags": ["行为经济学", "决策偏差"]
+  },
+  {
+    "title": "模糊厌恶",
+    "subtitle": "不确定性越高越不愿选择",
+    "icon": "question-circle",
+    "description": "人们倾向回避信息不足的选项。",
+    "example": "不了解新基金就完全不考虑配置。",
+    "importance": 79,
+    "tags": ["风险感知", "决策偏差"]
+  },
+  {
+    "title": "控制幻觉",
+    "subtitle": "高估自己对随机事件的控制力",
+    "icon": "hand-paper",
+    "description": "在不可控情境中也以为操作会影响结果。",
+    "example": "彩票选号以为比机选更容易中奖。",
+    "importance": 76,
+    "tags": ["风险感知", "元认知"]
+  },
+  {
+    "title": "回归均值忽视",
+    "subtitle": "忽略极端值会自然回到平均",
+    "icon": "chart-line",
+    "description": "极端表现后往往自然回落或回升，非干预所致。",
+    "example": "训斥后成绩回落被错认作“教育有效”。",
+    "importance": 82,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "公正世界假设",
+    "subtitle": "相信“善有善报、恶有恶报”",
+    "icon": "balance-scale",
+    "description": "倾向认为世界是公平的，弱化偶然与不公。",
+    "example": "责怪受害者“肯定自己有问题”。",
+    "importance": 75,
+    "tags": ["社会心理", "归因偏差"]
+  },
+  {
+    "title": "道德许可",
+    "subtitle": "做过好事后更敢做不那么好的事",
+    "icon": "certificate",
+    "description": "先前的道德行为给了自己“许可”放松标准。",
+    "example": "健身后给自己大吃一顿油炸食品。",
+    "importance": 70,
+    "tags": ["社会心理", "行为经济学"]
+  },
+  {
+    "title": "稀缺性偏见",
+    "subtitle": "越稀缺越觉得有价值",
+    "icon": "shopping-cart",
+    "description": "“限量”“最后一件”会大幅提升购买冲动。",
+    "example": "因“只剩2件”而冲动下单并后悔。",
+    "importance": 82,
+    "tags": ["行为经济学", "信息偏差"]
+  },
+  {
+    "title": "拖延偏误",
+    "subtitle": "将重要但不紧急的事一再延后",
+    "icon": "bed",
+    "description": "短期情绪与即时奖励战胜长期目标。",
+    "example": "总把体检、存档、理财规划往后放。",
+    "importance": 88,
+    "tags": ["行为经济学", "执行力"]
+  },
+  {
+    "title": "合取谬误",
+    "subtitle": "具体故事更诱人却概率更低",
+    "icon": "list",
+    "description": "把更具体的联合事件误判为更可能。",
+    "example": "认为“环保银行职员”比“银行职员”更可能。",
+    "importance": 86,
+    "tags": ["统计谬误", "逻辑谬误"]
+  },
+  {
+    "title": "零风险偏见",
+    "subtitle": "倾向把小风险降到零而非整体优化",
+    "icon": "shield-alt",
+    "description": "宁花大代价消除小风险，也不愿更高总收益。",
+    "example": "为完全消毒花过多时间，忽略主要风险。",
+    "importance": 71,
+    "tags": ["风险感知", "决策偏差"]
+  },
+  {
+    "title": "认知失调",
+    "subtitle": "信念与行为冲突时通过自我合理化缓解不适",
+    "icon": "brain",
+    "description": "调和矛盾信息以维持自我一致感。",
+    "example": "明知熬夜伤身却说“我夜间效率高”。",
+    "importance": 85,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "路径依赖",
+    "subtitle": "早期选择对后续选择施加强惯性",
+    "icon": "route",
+    "description": "历史轨迹使得改变方向成本陡增。",
+    "example": "技术栈一开始选错后续很难迁移。",
+    "importance": 83,
+    "tags": ["决策偏差", "组织行为"]
+  },
+  {
+    "title": "小数法则",
+    "subtitle": "用少量样本推断总体结论",
+    "icon": "chart-pie",
+    "description": "对小样本过度信任，忽略随机波动。",
+    "example": "访谈几个人就给出“行业普遍做法”。",
+    "importance": 84,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "过早结论",
+    "subtitle": "证据不足就下判断",
+    "icon": "flag-checkered",
+    "description": "未充分验证前就采取定性结论与行动。",
+    "example": "仅凭一次投诉就否定整个产品线。",
+    "importance": 80,
+    "tags": ["逻辑谬误", "决策偏差"]
+  },
+  {
+    "title": "群体极化",
+    "subtitle": "讨论后群体意见更趋极端",
+    "icon": "comments",
+    "description": "同温层讨论强化既有立场并走向极端。",
+    "example": "投资群越聊越“满仓梭哈”。",
+    "importance": 79,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "集体思维（群体思考）",
+    "subtitle": "追求一致而压抑异议，降低决策质量",
+    "icon": "users",
+    "description": "为维持和谐而忽视风险与替代方案。",
+    "example": "会议没人敢提反对意见导致重大疏漏。",
+    "importance": 86,
+    "tags": ["社会心理", "决策偏差"]
+  },
+  {
+    "title": "选择性抽样（择果偏差）",
+    "subtitle": "只挑支持结论的证据呈现",
+    "icon": "filter",
+    "description": "忽略不利数据导致误导性结论。",
+    "example": "营销只展示成功案例不展示失败样本。",
+    "importance": 88,
+    "tags": ["信息偏差", "统计谬误"]
+  },
+  {
+    "title": "诉诸权威谬误",
+    "subtitle": "以权威背书替代证据",
+    "icon": "user-tie",
+    "description": "引用名人或专家观点当作充分论证。",
+    "example": "“某院士说了，所以一定对”。",
+    "importance": 78,
+    "tags": ["逻辑谬误", "信息偏差"]
+  },
+  {
+    "title": "诉诸大众谬误",
+    "subtitle": "因为多数人相信就当作正确",
+    "icon": "bullhorn",
+    "description": "把流行度当作真实性的证明。",
+    "example": "“大家都买，肯定不差”。",
+    "importance": 75,
+    "tags": ["逻辑谬误", "社会心理"]
+  },
+  {
+    "title": "诉诸情感谬误",
+    "subtitle": "用情绪替代理性证据",
+    "icon": "heart",
+    "description": "以恐惧、怜悯或愤怒操纵判断。",
+    "example": "广告用悲情故事推动冲动购买。",
+    "importance": 77,
+    "tags": ["逻辑谬误", "信息偏差"]
+  },
+  {
+    "title": "稻草人谬误",
+    "subtitle": "歪曲对方观点再加以批驳",
+    "icon": "wind",
+    "description": "把对手观点夸张成极端版本来反驳。",
+    "example": "你说“应监管”，被回“你要全面禁用”。",
+    "importance": 80,
+    "tags": ["逻辑谬误", "沟通偏差"]
+  },
+  {
+    "title": "人身攻击谬误",
+    "subtitle": "攻击说话者而非观点",
+    "icon": "user-times",
+    "description": "以品格或动机攻击取代论证。",
+    "example": "“你没学历，别谈经济政策”。",
+    "importance": 79,
+    "tags": ["逻辑谬误", "沟通偏差"]
+  },
+  {
+    "title": "假两难谬误",
+    "subtitle": "把复杂问题简化为二选一",
+    "icon": "toggle-on",
+    "description": "忽略其他可能选项或折中方案。",
+    "example": "“要么裁员，要么破产”。",
+    "importance": 78,
+    "tags": ["逻辑谬误", "决策偏差"]
+  },
+  {
+    "title": "滑坡谬误",
+    "subtitle": "把小变化夸张成极端后果",
+    "icon": "mountain",
+    "description": "假定一步会不可避免地引发不良连锁。",
+    "example": "“允许远程就会无人来公司”。",
+    "importance": 74,
+    "tags": ["逻辑谬误", "风险感知"]
+  },
+  {
+    "title": "因果倒置",
+    "subtitle": "把相关当因果，或把因果方向搞反",
+    "icon": "arrows-alt-h",
+    "description": "相关不等于因果，且方向可能相反。",
+    "example": "以为多吃冰激凌导致夏季溺水增多。",
+    "importance": 89,
+    "tags": ["统计谬误", "逻辑谬误"]
+  },
+  {
+    "title": "诉诸无知谬误",
+    "subtitle": "因为没证伪就当作为真",
+    "icon": "question",
+    "description": "用“没人证明它是假的”来证明其为真。",
+    "example": "没人能证明外星人不存在，所以一定存在。",
+    "importance": 73,
+    "tags": ["逻辑谬误", "信息偏差"]
+  },
+  {
+    "title": "社会期望偏差",
+    "subtitle": "报告更“体面”的行为与观点",
+    "icon": "thumbs-up",
+    "description": "为符合社会期待而隐瞒真实想法或行为。",
+    "example": "问卷中夸大公益捐款次数。",
+    "importance": 76,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "霍桑效应",
+    "subtitle": "被观察到时会改变行为",
+    "icon": "eye",
+    "description": "知道被研究或考核会暂时改善表现。",
+    "example": "绩效考核月销量异常提高。",
+    "importance": 70,
+    "tags": ["社会心理", "组织行为"]
+  },
+  {
+    "title": "皮格马利翁效应",
+    "subtitle": "期望会促成更好的表现",
+    "icon": "arrow-up",
+    "description": "积极期待能提升被期待者的表现。",
+    "example": "老师对学生抱有期望提升其成绩。",
+    "importance": 77,
+    "tags": ["社会心理", "教育心理"]
+  },
+  {
+    "title": "宜家效应",
+    "subtitle": "自己参与制作的更有价值感",
+    "icon": "tools",
+    "description": "对亲手参与的事物赋予更高价值与情感。",
+    "example": "自己组装的家具更舍不得扔。",
+    "importance": 71,
+    "tags": ["行为经济学", "社会心理"]
+  },
+  {
+    "title": "许可效应",
+    "subtitle": "做了好事后更容易给自己开“绿灯”",
+    "icon": "unlock",
+    "description": "先前的自控或善行使后续放纵更易发生。",
+    "example": "加班完成任务后通宵打游戏。",
+    "importance": 69,
+    "tags": ["行为经济学", "自控偏差"]
+  },
+  {
+    "title": "后悔厌恶",
+    "subtitle": "过度回避未来可能的后悔",
+    "icon": "undo",
+    "description": "为避免后悔而选择保守方案，牺牲期望收益。",
+    "example": "不敢止盈，怕卖出后继续涨。",
+    "importance": 80,
+    "tags": ["风险感知", "决策偏差"]
+  },
+  {
+    "title": "负债承诺升级",
+    "subtitle": "错了也持续投入以证明没错",
+    "icon": "level-up-alt",
+    "description": "为维护自尊或一致性，明知错误仍加码投入。",
+    "example": "亏损项目持续追加预算。",
+    "importance": 86,
+    "tags": ["行为经济学", "组织行为"]
+  },
+  {
+    "title": "显著性偏见",
+    "subtitle": "过度关注醒目的细节",
+    "icon": "highlighter",
+    "description": "被显眼、易记或情绪化的信息吸引而忽视主体事实。",
+    "example": "被夸张标题吸引而忽略正文数据。",
+    "importance": 78,
+    "tags": ["信息偏差", "注意偏差"]
+  },
+  {
+    "title": "选择偏差",
+    "subtitle": "样本的选取方式导致结论偏差",
+    "icon": "filter",
+    "description": "样本非随机或选择性纳入导致不可推广。",
+    "example": "只调查线上用户代表不了所有客户。",
+    "importance": 85,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "错觉相关",
+    "subtitle": "把偶然同时出现当成有联系",
+    "icon": "link",
+    "description": "对偶然共现过度解读为因果或稳定关系。",
+    "example": "穿某件衣服就觉得“带来好运”。",
+    "importance": 74,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "三段论谬误（不当概括）",
+    "subtitle": "从个别到总体的错误推断",
+    "icon": "project-diagram",
+    "description": "样本不足或前提不成立导致不当概括。",
+    "example": "遇到一个冷漠医生就认为医生都冷漠。",
+    "importance": 79,
+    "tags": ["逻辑谬误", "统计谬误"]
+  },
+  {
+    "title": "移动目标谬误",
+    "subtitle": "不断改变评判标准以维持既有结论",
+    "icon": "bullseye",
+    "description": "当证据不利时随意修改标准。",
+    "example": "预测没准就说“其实是更长期预测”。",
+    "importance": 72,
+    "tags": ["逻辑谬误", "信息偏差"]
+  },
+  {
+    "title": "沉默证据偏差",
+    "subtitle": "忽略未被记录或缺失的数据",
+    "icon": "volume-mute",
+    "description": "只看被记录和可见的数据，忽略沉默样本。",
+    "example": "战争中只研究返航飞机的弹孔。",
+    "importance": 88,
+    "tags": ["统计谬误", "信息偏差"]
+  },
+  {
+    "title": "权重忽视",
+    "subtitle": "对不同因素赋予不合理权重",
+    "icon": "balance-scale",
+    "description": "次要因素被过度强调，关键因素被忽视。",
+    "example": "选学校只看排名不看专业契合度。",
+    "importance": 82,
+    "tags": ["决策偏差", "信息偏差"]
+  },
+  {
+    "title": "默认效应",
+    "subtitle": "更倾向于接受默认选项",
+    "icon": "toggle-off",
+    "description": "改变默认需要额外努力，导致被动接受。",
+    "example": "默认勾选的订阅选项很少被取消。",
+    "importance": 84,
+    "tags": ["行为经济学", "决策偏差"]
+  },
+  {
+    "title": "虚假共识效应",
+    "subtitle": "高估自己观点的普遍性",
+    "icon": "users",
+    "description": "误以为多数人和自己想法一致。",
+    "example": "认为大家都反对加班制度。",
+    "importance": 76,
+    "tags": ["社会心理", "信息偏差"]
+  },
+  {
+    "title": "框内思维偏差",
+    "subtitle": "被既定边界限制，忽略替代方案",
+    "icon": "cube",
+    "description": "在既有方案中选择而非先重构问题。",
+    "example": "只比较两家供应商而不考虑自建方案。",
+    "importance": 80,
+    "tags": ["决策偏差", "问题定义"]
+  },
+  {
+    "title": "语言框架误导",
+    "subtitle": "词语选择暗中引导态度",
+    "icon": "quote-right",
+    "description": "词汇带有情绪或价值色彩影响判断。",
+    "example": "称“减税”或“缩减社会投入”引发不同反应。",
+    "importance": 78,
+    "tags": ["信息偏差", "沟通偏差"]
+  }
+]
