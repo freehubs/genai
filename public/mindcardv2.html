@@ -24,8 +24,106 @@
             color: #333;
         }
         
-        .container {
+        .app-container {
             width: 393px;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .instructions {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .instructions h2 {
+            color: #4f46e5;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .instructions h2 i {
+            margin-right: 10px;
+        }
+        
+        .instructions-content {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .instructions-content pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+        
+        .json-input-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .json-input-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .json-input-title i {
+            margin-right: 10px;
+        }
+        
+        .json-textarea {
+            width: 100%;
+            height: 150px;
+            border: 2px solid #eef2ff;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+        
+        .json-textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .import-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            width: 100%;
+            font-weight: 600;
+        }
+        
+        .import-btn:hover {
+            background: #4338ca;
+        }
+        
+        .card-view-container {
+            width: 100%;
             position: relative;
         }
         
@@ -44,7 +142,7 @@
         }
         
         .card {
-            width: 393px;
+            width: 100%;
             flex-shrink: 0;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -79,7 +177,7 @@
         
         .card-content {
             padding: 25px;
-            max-height: 400px;
+            max-height: 600px;
             overflow-y: auto;
         }
         
@@ -176,7 +274,10 @@
         .card-indicators {
             display: flex;
             justify-content: center;
+            align-items: center;
             margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 5px;
         }
         
         .indicator {
@@ -184,7 +285,6 @@
             height: 10px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.5);
-            margin: 0 5px;
             cursor: pointer;
             transition: background 0.3s ease;
         }
@@ -194,53 +294,16 @@
             transform: scale(1.2);
         }
         
-        .json-input-container {
-            width: 100%;
-            margin-bottom: 20px;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .json-input-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #4f46e5;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        
-        .json-textarea {
-            width: 100%;
-            height: 100px;
-            border: 2px solid #eef2ff;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 14px;
-            resize: vertical;
-            margin-bottom: 10px;
-        }
-        
-        .json-textarea:focus {
-            outline: none;
-            border-color: #4f46e5;
-        }
-        
-        .import-btn {
-            background: #4f46e5;
+        .ellipsis {
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            width: 100%;
+            margin: 0 5px;
+            font-weight: bold;
         }
         
-        .import-btn:hover {
-            background: #4338ca;
+        .card-counter {
+            color: white;
+            font-weight: 600;
+            margin: 0 10px;
         }
         
         .footer-note {
@@ -250,8 +313,8 @@
             font-size: 12px;
         }
         
-        @media (max-width: 393px) {
-            .container {
+        @media (max-width: 768px) {
+            .app-container {
                 width: 100%;
             }
             
@@ -281,31 +344,57 @@
     </style>
 </head>
 <body>
-    <div class="json-input-container">
-        <div class="json-input-title">导入JSON数据</div>
-        <textarea class="json-textarea" placeholder="粘贴JSON数据到这里..."></textarea>
-        <button class="import-btn">导入数据并生成卡片</button>
-    </div>
-
-    <div class="container">
-        <div class="card-carousel">
-            <div class="cards-container">
-                <!-- 卡片将由JavaScript动态生成 -->
+    <div class="app-container">
+        <div class="instructions">
+            <h2><i class="fas fa-info-circle"></i>使用说明</h2>
+            <div class="instructions-content">
+                <p>此心智模型卡片模板支持导入JSON数据批量生成卡片，并可通过左右按钮切换查看不同卡片。</p>
+                
+                <h3>数据格式要求：</h3>
+                <p>请生成一个 JSON 数组，内容为认知偏差/思维谬误。每个 JSON 对象必须包含以下字段：</p>
+                
+                <pre>{
+    "title": "偏差名称（中文）",
+    "subtitle": "用一句简短话总结该偏差的核心特征",
+    "icon": "图标名称（参考FontAwesome，如'brain'）",
+    "description": "对该偏差的简要说明，要求简洁清晰，通俗易懂",
+    "example": "一个真实或常见的生活/工作场景中的例子",
+    "importance": 数值（0-100表示重要程度）,
+    "tags": ["标签1", "标签2", ...]
+}</pre>
+                
+                <h3>数据生成提示：</h3>
+                <p>请生成一个 JSON 数组，内容为不少于 50 条常见的认知偏差/思维谬误。</p>
+                <p>标签数组至少包含 2 个分类，例如："决策偏差"、"信息偏差"、"社会心理"、"风险感知"、"记忆偏差"等。</p>
             </div>
         </div>
-        
-        <div class="navigation">
-            <button class="nav-btn" id="prev-btn" disabled>
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            
-            <div class="card-indicators">
-                <!-- 指示器将由JavaScript动态生成 -->
+
+        <div class="json-input-container">
+            <div class="json-input-title"><i class="fas fa-database"></i>导入JSON数据</div>
+            <textarea class="json-textarea" placeholder="粘贴JSON数据到这里..."></textarea>
+            <button class="import-btn">导入数据并生成卡片</button>
+        </div>
+
+        <div class="card-view-container">
+            <div class="card-carousel">
+                <div class="cards-container">
+                    <!-- 卡片将由JavaScript动态生成 -->
+                </div>
             </div>
             
-            <button class="nav-btn" id="next-btn">
-                <i class="fas fa-chevron-right"></i>
-            </button>
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="card-indicators">
+                    <!-- 指示器将由JavaScript动态生成 -->
+                </div>
+                
+                <button class="nav-btn" id="next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -340,6 +429,24 @@
                 example: "认为创业很容易，因为只听说过成功的企业家故事。",
                 importance: 85,
                 tags: ["信息偏差", "数据解读"]
+            },
+            {
+                title: "锚定效应",
+                subtitle: "过度依赖最先获得的信息",
+                icon: "anchor",
+                description: "锚定效应是指人们在决策时过度依赖最先获得的信息（锚点），即使这个信息与决策无关。",
+                example: "商品的原价标签使折扣价看起来更吸引人，即使实际价格并不划算。",
+                importance: 80,
+                tags: ["决策偏差", "数值判断"]
+            },
+            {
+                title: "从众效应",
+                subtitle: "倾向于跟随大多数人的行为",
+                icon: "users",
+                description: "从众效应是指人们倾向于做别人都在做的事情，相信别人都相信的事情，以避免冲突。",
+                example: "投资加密货币只是因为周围的人都在投资。",
+                importance: 70,
+                tags: ["社会心理", "群体行为"]
             }
         ];
 
@@ -417,6 +524,20 @@
                         
                         <div class="section">
                             <h2 class="section-title">
+                                <i class="fas fa-chart-line"></i>重要程度
+                            </h2>
+                            <div class="section-content">
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 60px; height: 6px; background: #e5e7eb; border-radius: 3px; margin-right: 10px; overflow: hidden;">
+                                        <div style="width: ${data.importance}%; height: 100%; background: #4f46e5; border-radius: 3px;"></div>
+                                    </div>
+                                    <span>${data.importance}/100</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h2 class="section-title">
                                 <i class="fas fa-tags"></i>标签
                             </h2>
                             <div class="section-content">
@@ -427,16 +548,91 @@
                 `;
                 
                 cardsContainer.appendChild(card);
-                
-                // 创建指示器
-                const indicator = document.createElement('div');
-                indicator.className = `indicator ${index === 0 ? 'active' : ''}`;
-                indicator.addEventListener('click', () => showCard(index));
-                indicatorsContainer.appendChild(indicator);
             });
             
             // 设置容器宽度
             cardsContainer.style.width = `${cardsData.length * 393}px`;
+            
+            // 设置卡片宽度
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.width = `${100 / cardsData.length}%`;
+            });
+            
+            // 创建指示器
+            createIndicators();
+            
+            // 更新导航
+            updateNavigation();
+        }
+
+        // 创建指示器（当卡片超过3个时，只显示前后1个，中间用省略号）
+        function createIndicators() {
+            indicatorsContainer.innerHTML = '';
+            
+            if (cardsData.length <= 3) {
+                // 卡片数量少，显示所有指示器
+                for (let i = 0; i < cardsData.length; i++) {
+                    const indicator = document.createElement('div');
+                    indicator.className = `indicator ${i === currentIndex ? 'active' : ''}`;
+                    indicator.addEventListener('click', () => showCard(i));
+                    indicatorsContainer.appendChild(indicator);
+                }
+            } else {
+                // 卡片数量多，使用简化指示器
+                
+                // 第一个指示器
+                const firstIndicator = document.createElement('div');
+                firstIndicator.className = `indicator ${currentIndex === 0 ? 'active' : ''}`;
+                firstIndicator.addEventListener('click', () => showCard(0));
+                indicatorsContainer.appendChild(firstIndicator);
+                
+                // 前面的省略号（如果需要）
+                if (currentIndex > 1) {
+                    const ellipsis1 = document.createElement('div');
+                    ellipsis1.className = 'ellipsis';
+                    ellipsis1.textContent = '...';
+                    indicatorsContainer.appendChild(ellipsis1);
+                }
+                
+                // 当前指示器附近的指示器
+                if (currentIndex > 0 && currentIndex < cardsData.length - 1) {
+                    const prevIndicator = document.createElement('div');
+                    prevIndicator.className = `indicator ${currentIndex - 1 === currentIndex ? 'active' : ''}`;
+                    prevIndicator.addEventListener('click', () => showCard(currentIndex - 1));
+                    indicatorsContainer.appendChild(prevIndicator);
+                    
+                    const currentIndicator = document.createElement('div');
+                    currentIndicator.className = 'indicator active';
+                    indicatorsContainer.appendChild(currentIndicator);
+                    
+                    if (currentIndex < cardsData.length - 2) {
+                        const nextIndicator = document.createElement('div');
+                        nextIndicator.className = `indicator`;
+                        nextIndicator.addEventListener('click', () => showCard(currentIndex + 1));
+                        indicatorsContainer.appendChild(nextIndicator);
+                    }
+                }
+                
+                // 后面的省略号（如果需要）
+                if (currentIndex < cardsData.length - 2) {
+                    const ellipsis2 = document.createElement('div');
+                    ellipsis2.className = 'ellipsis';
+                    ellipsis2.textContent = '...';
+                    indicatorsContainer.appendChild(ellipsis2);
+                }
+                
+                // 最后一个指示器
+                const lastIndicator = document.createElement('div');
+                lastIndicator.className = `indicator ${currentIndex === cardsData.length - 1 ? 'active' : ''}`;
+                lastIndicator.addEventListener('click', () => showCard(cardsData.length - 1));
+                indicatorsContainer.appendChild(lastIndicator);
+                
+                // 添加计数器
+                const counter = document.createElement('div');
+                counter.className = 'card-counter';
+                counter.textContent = `${currentIndex + 1}/${cardsData.length}`;
+                indicatorsContainer.appendChild(counter);
+            }
         }
 
         // 显示特定卡片
@@ -444,12 +640,10 @@
             if (index < 0 || index >= cardsData.length) return;
             
             currentIndex = index;
-            cardsContainer.style.transform = `translateX(-${index * 393}px)`;
+            cardsContainer.style.transform = `translateX(-${index * (100 / cardsData.length)}%)`;
             
             // 更新指示器
-            document.querySelectorAll('.indicator').forEach((indicator, i) => {
-                indicator.classList.toggle('active', i === index);
-            });
+            createIndicators();
             
             // 更新按钮状态
             updateNavigation();
