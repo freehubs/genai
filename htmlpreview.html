@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HTML Preview · Apple-style</title>
+  <style>
+    :root{
+      --bg:#0b0c0f;            /* 背景 */
+      --panel:#0f1115;         /* 面板 */
+      --panel-2:#111319;
+      --card:#0c0e13;          /* 卡片 */
+      --text:#e9ecf1;          /* 主要文字 */
+      --muted:#a7b0c2;         /* 次级文字 */
+      --accent:#007aff;        /* iOS 蓝 */
+      --border:rgba(255,255,255,.08);
+      --radius:16px;
+      --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.04) inset;
+      --glass:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      --code:#ced7e8;
+    }
+    [data-theme="light"]{
+      --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f7f8fb; --card:#ffffff; --text:#0b1220; --muted:#53627a; --accent:#007aff; --border:rgba(0,0,0,.08); --shadow:0 10px 30px rgba(0,0,0,.06), 0 1px 0 rgba(255,255,255,.6) inset; --code:#0b1220;
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; gap:14px; padding:12px; }
+
+    /* 顶栏 */
+    .toolbar{position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:12px; padding:10px 12px; background:var(--panel); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow);}
+    .title{font-weight:800; letter-spacing:.3px; font-size:clamp(16px,2.2vw,22px)}
+    .grow{flex:1}
+    .btn{appearance:none; border:none; border-radius:12px; padding:9px 12px; background:var(--panel-2); color:var(--text); border:1px solid var(--border); font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer}
+    .btn.primary{background:var(--accent); color:#fff; border:1px solid rgba(0,0,0,.12)}
+    .btn.ghost{background:transparent}
+    .btn:active{transform:translateY(1px)}
+    .kbd{font:600 12px/1.2 monospace; padding:3px 6px; border-radius:6px; background:rgba(127,127,127,.15); border:1px solid var(--border)}
+    .seg{display:flex; background:var(--panel-2); border:1px solid var(--border); border-radius:12px; overflow:hidden}
+    .seg button{padding:8px 10px; border:0; background:transparent; color:var(--muted)}
+    .seg button.active{background:var(--panel); color:var(--text)}
+    .switch{display:inline-flex; align-items:center; gap:8px}
+    .switch input{width:42px; height:24px}
+    input[type="file"]{display:none}
+    label.file{cursor:pointer}
+
+    /* 分栏区域 */
+    .split{flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .pane{background:var(--panel); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); position:relative; display:flex; flex-direction:column; min-height:200px}
+    .pane header{display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--glass); border-top-left-radius:20px; border-top-right-radius:20px}
+    .pane header .right{display:flex; align-items:center; gap:8px}
+
+    /* 编辑器 */
+    .editor{flex:1; min-height:120px; resize:none; border:0; outline:none; background:transparent; color:var(--code); padding:14px; font:500 13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; caret-color:var(--accent)}
+    .status{position:absolute; right:12px; bottom:10px; color:var(--muted); font-size:12px}
+
+    /* 预览 */
+    .preview-wrap{position:relative; flex:1; min-height:140px;}
+    iframe.preview{position:absolute; inset:0; width:100%; height:100%; border:0; border-bottom-left-radius:20px; border-bottom-right-radius:20px; background:#fff}
+
+    /* 拖动分隔条 */
+    .resizer{position:absolute; top:0; bottom:0; width:10px; right:-6px; cursor:col-resize}
+
+    /* 底部提示 */
+    .hint{opacity:.8; color:var(--muted); font-size:12px; text-align:center}
+
+    /* 全屏辅助 */
+    .fs-btn{border-radius:10px}
+
+    /* 响应式 */
+    @media (max-width:900px){ .split{grid-template-columns:1fr; grid-template-rows:1fr 1fr} }
+
+    @supports(padding:max(0px)){
+      body{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="title">HTML Preview</div>
+    <div class="seg" role="tablist" aria-label="layout">
+      <button class="active" id="layoutSplit" title="并排">并排</button>
+      <button id="layoutPreview" title="仅预览">仅预览</button>
+      <button id="layoutEditor" title="仅编辑">仅编辑</button>
+    </div>
+    <div class="grow"></div>
+
+    <label for="file" class="btn ghost file" title="打开 .html 文件">打开文件</label>
+    <input type="file" id="file" accept="text/html,.html,.htm" />
+
+    <button class="btn" id="save">保存</button>
+    <button class="btn primary" id="run">运行 <span class="kbd">⌘↵</span></button>
+
+    <div class="switch">
+      <span class="kbd">⌘/</span>
+      <label><input type="checkbox" id="live"> 实时预览</label>
+    </div>
+
+    <div class="switch">
+      <label><input type="checkbox" id="themeToggle"> 浅色</label>
+    </div>
+  </div>
+
+  <div class="split" id="split">
+    <section class="pane" id="paneEditor" aria-label="Editor">
+      <header>
+        <strong>编辑器</strong>
+        <div class="right">
+          <button class="btn ghost" id="fmt">格式化</button>
+          <button class="btn ghost" id="insert">插入模板</button>
+        </div>
+      </header>
+      <textarea id="editor" class="editor" spellcheck="false" placeholder="在此粘贴或编写 HTML…"></textarea>
+      <div class="status" id="status">已就绪</div>
+      <div class="resizer" id="resizer" title="拖动调整左右宽度"></div>
+    </section>
+
+    <section class="pane" id="panePreview" aria-label="Preview">
+      <header>
+        <strong>预览</strong>
+        <div class="right">
+          <button class="btn ghost fs-btn" id="fsApp">应用全屏</button>
+          <button class="btn ghost fs-btn" id="fsIframe">预览全屏</button>
+          <button class="btn ghost" id="reload">刷新</button>
+        </div>
+      </header>
+      <div class="preview-wrap">
+        <iframe id="preview" class="preview" title="HTML 预览" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      </div>
+    </section>
+  </div>
+
+  <p class="hint">提示：按 <span class="kbd">⌘↵</span> 运行；<span class="kbd">⌘/</span> 切换实时预览；支持拖动中间分隔线改变两侧宽度；支持全屏预览。</p>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const editor = $('#editor');
+    const frame = $('#preview');
+    const statusEl = $('#status');
+
+    const initial = `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hello Apple Style</title>
+  <style>
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; display:grid; place-items:center; min-height:100vh; background:linear-gradient(135deg,#f5f7ff,#eef2ff)}
+    .card{background:#fff; padding:28px 26px; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,.08)}
+    h1{margin:0 0 6px; font-size:32px}
+    p{margin:0; color:#42526e}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🍎 Hello, world!</h1>
+    <p>这是一个示例模板，你可以自定义 HTML / CSS / JS。</p>
+  </div>
+</body>
+</html>`;
+
+    editor.value = initial;
+
+    // 运行/注入到 iframe
+    function run(){
+      const html = editor.value;
+      const blob = new Blob([html], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      frame.src = url; // 使用 blob URL，避免 srcdoc 的某些 CSP 限制
+      status('已运行');
+      setTimeout(()=> URL.revokeObjectURL(url), 30000);
+    }
+
+    function status(t){ statusEl.textContent = t }
+
+    // 实时预览
+    const live = $('#live');
+    let liveTimer;
+    function schedule(){ if(!live.checked) return; clearTimeout(liveTimer); liveTimer = setTimeout(run, 350) }
+    editor.addEventListener('input', schedule);
+
+    // 手动运行
+    $('#run').addEventListener('click', run);
+
+    // 刷新 iframe（不改变内容）
+    $('#reload').addEventListener('click', ()=>{ frame.contentWindow?.location.reload() })
+
+    // 打开/保存
+    $('#file').addEventListener('change', async (e)=>{
+      const f = e.target.files?.[0]; if(!f) return; const txt = await f.text(); editor.value = txt; run(); status(`已打开：${f.name}`);
+    });
+    $('#save').addEventListener('click', ()=>{
+      const blob = new Blob([editor.value], {type:'text/html'});
+      const a = document.createElement('a'); a.download = 'index.html'; a.href = URL.createObjectURL(blob); a.click(); setTimeout(()=> URL.revokeObjectURL(a.href), 5000);
+      status('已保存为 index.html');
+    });
+
+    // 模板与格式化（简单缩进）
+    $('#insert').addEventListener('click', ()=>{ editor.value = initial; run(); });
+    $('#fmt').addEventListener('click', ()=>{ editor.value = pretty(editor.value); schedule(); status('已格式化') });
+
+    // 布局切换
+    const split = $('#split');
+    $('#layoutSplit').onclick = ()=>{ split.style.gridTemplateColumns = '1fr 1fr'; setActive('layoutSplit') };
+    $('#layoutPreview').onclick = ()=>{ split.style.gridTemplateColumns = '0fr 1fr'; setActive('layoutPreview') };
+    $('#layoutEditor').onclick = ()=>{ split.style.gridTemplateColumns = '1fr 0fr'; setActive('layoutEditor') };
+    function setActive(id){ document.querySelectorAll('.seg button').forEach(b=> b.classList.toggle('active', b.id===id)) }
+
+    // 主题
+    const themeToggle = $('#themeToggle');
+    function applyTheme(){ document.documentElement.setAttribute('data-theme', themeToggle.checked? 'light':'dark') }
+    themeToggle.addEventListener('change', applyTheme); applyTheme();
+
+    // 全屏（应用 & Iframe）
+    $('#fsApp').addEventListener('click', ()=>{
+      (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)?.call(document.documentElement);
+    });
+    $('#fsIframe').addEventListener('click', ()=>{
+      (frame.requestFullscreen || frame.webkitRequestFullscreen)?.call(frame);
+    });
+
+    // 拖动调整左右宽度
+    (function resizable(){
+      const resizer = $('#resizer'); const paneLeft = $('#paneEditor'); let dragging=false, startX=0, startCols=[1,1];
+      resizer.addEventListener('mousedown', (e)=>{ dragging=true; startX=e.clientX; const gcs=getComputedStyle(split).gridTemplateColumns.split(' '); startCols=[parseFloat(gcs[0]), parseFloat(gcs[2]||1)] ; document.body.style.userSelect='none' });
+      addEventListener('mousemove', (e)=>{ if(!dragging) return; const dx=e.clientX-startX; const total=split.clientWidth; const left = Math.max(240, split.clientWidth*(startCols[0]/(startCols[0]+startCols[1])) + dx); const right = total-left; split.style.gridTemplateColumns = left+'px '+right+'px'; });
+      addEventListener('mouseup', ()=>{ dragging=false; document.body.style.userSelect='' });
+    })();
+
+    // 键盘快捷键
+    addEventListener('keydown', (e)=>{
+      if((e.metaKey||e.ctrlKey) && e.key === 'Enter'){ e.preventDefault(); run(); }
+      if((e.metaKey||e.ctrlKey) && e.key === '/'){ e.preventDefault(); live.checked = !live.checked; schedule(); }
+    });
+
+    // 初次运行
+    run();
+
+    // 简单格式化（非常基础）
+    function pretty(html){
+      try{
+        // 基于缩进的简易美化器（不解析 script/style 内部）
+        const lines = html.replace(/>\s+</g, '><').replace(/</g, '\n<').split(/\n+/).filter(Boolean);
+        const out=[]; let pad=0; const indent = s => '  '.repeat(s);
+        for(const l of lines){
+          if(/^<\//.test(l)) pad=Math.max(pad-1,0);
+          out.push(indent(pad)+l);
+          if(/^<([a-zA-Z0-9-]+)(?!.*\/>).*?>$/.test(l) && !/^<(meta|link|base|br|img|hr|input|source|area|col|param|track)\b/.test(l)) pad++;
+        }
+        return out.join('\n');
+      }catch(e){ return html }
+    }
+  </script>
+</body>
+</html>
