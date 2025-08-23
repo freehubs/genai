@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏠 Apple 风格房贷计算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f5f7, #e0e0e5);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .card {
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.7);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    input:focus {
+      outline: none;
+      border-color: #0071e3;
+      box-shadow: 0 0 0 2px rgba(0,113,227,0.3);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+  <div class="card p-8 max-w-md w-full space-y-6">
+    <h1 class="text-3xl font-semibold text-center text-gray-800">🏠 房贷计算器</h1>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-gray-600 mb-1">贷款金额 ($)</label>
+        <input id="loanAmount" type="number" min="0" value="500000" class="w-full p-3 rounded-xl border border-gray-300">
+      </div>
+      <div>
+        <label class="block text-gray-600 mb-1">年利率 (%)</label>
+        <input id="interestRate" type="number" min="0" step="0.01" value="4.5" class="w-full p-3 rounded-xl border border-gray-300">
+      </div>
+      <div>
+        <label class="block text-gray-600 mb-1">贷款年限</label>
+        <input id="loanYears" type="number" min="1" value="30" class="w-full p-3 rounded-xl border border-gray-300">
+      </div>
+    </div>
+
+    <div class="mt-4 text-center space-y-2">
+      <p class="text-gray-700">每月还款额：</p>
+      <p id="monthlyPayment" class="text-2xl font-bold text-gray-900">$0.00</p>
+      <p class="text-gray-700">总利息：</p>
+      <p id="totalInterest" class="text-lg font-semibold text-gray-800">$0.00</p>
+    </div>
+
+    <canvas id="paymentChart" class="mt-6 rounded-xl"></canvas>
+  </div>
+
+  <script>
+    const loanAmountInput = document.getElementById('loanAmount');
+    const interestRateInput = document.getElementById('interestRate');
+    const loanYearsInput = document.getElementById('loanYears');
+    const monthlyPaymentDisplay = document.getElementById('monthlyPayment');
+    const totalInterestDisplay = document.getElementById('totalInterest');
+    const ctx = document.getElementById('paymentChart').getContext('2d');
+
+    function calculateMonthlyPayment(P, r, n) {
+      r = r / 100 / 12; // 月利率
+      n = n * 12; // 月数
+      if (r === 0) return P / n;
+      return P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    }
+
+    function updateCalculator() {
+      const P = parseFloat(loanAmountInput.value);
+      const r = parseFloat(interestRateInput.value);
+      const n = parseFloat(loanYearsInput.value);
+
+      if (P <= 0 || r < 0 || n <= 0) {
+        monthlyPaymentDisplay.innerText = "$0.00";
+        totalInterestDisplay.innerText = "$0.00";
+        paymentChart.data.labels = [];
+        paymentChart.data.datasets[0].data = [];
+        paymentChart.update();
+        return;
+      }
+
+      const monthly = calculateMonthlyPayment(P, r, n);
+      const totalPayment = monthly * n * 12;
+      const totalInterest = totalPayment - P;
+
+      monthlyPaymentDisplay.innerText = `$${monthly.toFixed(2)}`;
+      totalInterestDisplay.innerText = `$${totalInterest.toFixed(2)}`;
+
+      // 更新折线图数据
+      const labels = [];
+      const data = [];
+      for (let i = 1; i <= n * 12; i++) {
+        labels.push(`第${i}月`);
+        data.push(monthly);
+      }
+      paymentChart.data.labels = labels;
+      paymentChart.data.datasets[0].data = data;
+      paymentChart.update();
+    }
+
+    // Chart.js 初始化
+    const paymentChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: '每月还款 ($)',
+          data: [],
+          borderColor: '#0071e3',
+          backgroundColor: 'rgba(0,113,227,0.2)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // 实时更新
+    loanAmountInput.addEventListener('input', updateCalculator);
+    interestRateInput.addEventListener('input', updateCalculator);
+    loanYearsInput.addEventListener('input', updateCalculator);
+
+    // 初始计算
+    updateCalculator();
+  </script>
+</body>
+</html>
