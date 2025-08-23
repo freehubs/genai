@@ -256,6 +256,11 @@
           <button class="btn" id="btnImportJson">导入数据</button>
         </div>
         <div class="row" style="margin-top:8px;">
+          <button class="btn" id="btnExportOpml">导出 OPML</button>
+          <input type="file" id="fileImportOpml" accept=".opml,.xml,text/xml,application/xml" style="display:none" />
+          <button class="btn" id="btnImportOpml">导入 OPML</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
           <button class="btn" id="settingsClose">关闭</button>
         </div>
       </div>
@@ -356,6 +361,20 @@
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return await res.text();
         }
+        async function fetchTextAuto(url) {
+          const u = normalizeUrl(url);
+          if (state.settings.useProxy) return fetchText(u);
+          try { return await (async () => {
+            const res = await fetch(u, { headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, application/json;q=0.9, text/xml;q=0.8, */*;q=0.1' } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return await res.text();
+          })(); } catch (err) {
+            if (state.settings.proxyPrefix) {
+              try { const text = await fetch(state.settings.proxyPrefix + u).then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.text(); }); toast('已通过代理抓取'); return text; } catch (e2) { throw err; }
+            }
+            throw err;
+          }
+        }
 
         // ---------- Parsers: RSS / Atom / JSON Feed ----------
         function parseFeed(text, url) {
@@ -370,6 +389,22 @@
             // fallback: try detect
             return parseRSS(doc, url);
           }
+        }
+        function discoverFeedFromHtml(html, baseUrl) {
+          try {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const links = Array.from(doc.querySelectorAll('link[rel="alternate"]'));
+            const candidates = links
+              .map(l => ({
+                type: (l.getAttribute('type')||'').toLowerCase(),
+                href: l.getAttribute('href') || ''
+              }))
+              .filter(x => x.href)
+              .map(x => ({ ...x, href: new URL(x.href, baseUrl).toString() }));
+            const order = ['application/rss+xml','application/atom+xml','application/feed+json','text/xml','application/xml'];
+            candidates.sort((a,b) => order.indexOf(a.type) - order.indexOf(b.type));
+            return candidates[0] && candidates[0].href || null;
+          } catch (e) { return null; }
         }
         function parseRSS(doc, url) {
           const ch = doc.querySelector('channel');
@@ -431,8 +466,19 @@
         async function addFeed(url) {
           const u = normalizeUrl(url);
           try {
-            const text = await fetchText(u);
-            const parsed = parseFeed(text, u);
+            let text = await fetchTextAuto(u);
+            let parsed = parseFeed(text, u);
+            if (!parsed.items || parsed.items.length === 0) {
+              // try auto-discover if HTML page was provided
+              const maybeHtml = /^\s*<!?doctype\s+html|<html[\s>]/i.test(text) || /<html[\s>]/i.test(text);
+              if (maybeHtml) {
+                const candidate = discoverFeedFromHtml(text, u);
+                if (candidate) {
+                  text = await fetchTextAuto(candidate);
+                  parsed = parseFeed(text, candidate);
+                }
+              }
+            }
             await idbPut('feeds', { url: u, title: parsed.feed.title, site: parsed.feed.site, lastFetched: Date.now() });
             let newCount = 0;
             for (const it of parsed.items) {
@@ -625,6 +671,31 @@
             if (data.settings) { Object.assign(state.settings, data.settings); await saveSettings(); await loadSettings(); }
             toast('导入完成'); await renderAll();
           } catch(err) { toast('导入失败：' + (err.message||err)); }
+        });
+
+        // OPML Export/Import
+        document.getElementById('btnExportOpml').addEventListener('click', async () => {
+          const feeds = await idbAll('feeds');
+          const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          const outlines = feeds.map(f => `  <outline text="${esc(f.title||f.url)}" title="${esc(f.title||'')}" type="rss" xmlUrl="${esc(f.url)}"${f.site?` htmlUrl="${esc(f.site)}"`:''} />`).join('\n');
+          const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n<head><title>Glass RSS Subscriptions</title></head>\n<body>\n${outlines}\n</body>\n</opml>`;
+          const blob = new Blob([xml], { type: 'application/xml' });
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'subscriptions.opml'; a.click(); URL.revokeObjectURL(a.href);
+        });
+        document.getElementById('btnImportOpml').addEventListener('click', () => document.getElementById('fileImportOpml').click());
+        document.getElementById('fileImportOpml').addEventListener('change', async (e) => {
+          const f = e.target.files[0]; if (!f) return;
+          try {
+            const text = await f.text();
+            const doc = new DOMParser().parseFromString(text, 'application/xml');
+            const outlines = Array.from(doc.querySelectorAll('outline[xmlUrl]'));
+            if (!outlines.length) { toast('未在 OPML 中发现订阅'); return; }
+            for (const o of outlines) {
+              const u = o.getAttribute('xmlUrl');
+              if (u) { try { await addFeed(u); } catch(e2) { console.warn('导入失败', u, e2); } }
+            }
+            toast('OPML 导入完成');
+          } catch (err) { toast('OPML 导入失败：' + (err.message||err)); }
         });
 
         document.getElementById('btnToggleRead').addEventListener('click', async () => { if (!state.selectedItemId) return; const it = await idbGet('items', state.selectedItemId); if (!it) return; it.read = !it.read; await idbPut('items', it); toast(it.read?'已读':'未读'); await renderSidebar(); await renderItems(); });
