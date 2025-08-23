@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>一页纸复习页 · 通用概念模板（支持 JSON 批量导入 & 左右滑动）</title>
+  <style>
+    /* ===== 主题与打印设置 ===== */
+    :root{
+      --primary:#2563eb;   /* 默认蓝：科技 */
+      --accent:#10b981;    /* 默认绿：高质量/可持续 */
+      --muted:#6b7280;     /* 灰：辅助 */
+      --bg:#f8fafc;        /* 背景浅色 */
+      --ink:#0f172a;       /* 文字主色 */
+      --card:#ffffff;      /* 卡片底色 */
+      --border:#e5e7eb;    /* 边框色 */
+    }
+
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { background: #fff !important; }
+      .app-toolbar, .carousel-nav, .importer { display: none !important; }
+      .slides { gap: 0; }
+      .slide { box-shadow: none; margin: 0 0 16px 0; page-break-after: always; }
+      .slide:last-child { page-break-after: auto; }
+    }
+
+    /* ===== 页面与布局 ===== */
+    html, body { height: 100%; }
+    body{
+      margin:0; padding:0; background: var(--bg); color: var(--ink);
+      /* Apple Font：采用系统 SF 字体族 */
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+
+    .app-toolbar{
+      position: sticky; top: 0; z-index: 50; background: rgba(248,250,252,.8);
+      backdrop-filter: saturate(120%) blur(6px);
+      border-bottom: 1px solid var(--border); padding: 10px 14px; display:flex; gap:8px; align-items:center; flex-wrap: wrap;
+    }
+    .app-toolbar .btn{
+      border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:13px;
+    }
+
+    .importer{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-left:auto; }
+    .importer textarea{ width: 360px; height: 90px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; padding:8px; border:1px solid var(--border); border-radius:8px; background:#fff; }
+
+    .viewport{ width:100%; overflow:hidden; }
+
+    .slides{
+      display:flex; gap: 18px; padding: 16px; scroll-behavior: smooth;
+      /* 允许鼠标拖动滚动 */
+    }
+
+    .slide{
+      flex: 0 0 auto; width: 210mm; min-height: 297mm; background: var(--card);
+      border:1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+      display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; position: relative;
+    }
+
+    /* 顶部标题区 */
+    header{
+      padding: 16px 18px 8px 18px; border-bottom: 1px solid var(--border);
+      display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px;
+    }
+    .titleblock h1{ margin:0; font-size: 22px; letter-spacing: .2px; font-weight: 700; }
+    .titleblock p{ margin:6px 0 0 0; color: var(--muted); font-size: 12.5px; }
+    .badges { display:flex; gap:8px; align-items:center; }
+    .badge{ font-size:11px; border:1px solid var(--border); padding:4px 8px; border-radius:20px; color:#334155; }
+
+    /* 主体：A4 内部网格布局 */
+    .content{
+      padding: 14px 18px 18px 18px;
+      display: grid;
+      grid-template-areas:
+        "def def"
+        "ele feat"
+        "model model"
+        "mis ex"
+        "quiz quiz";
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto auto auto;
+      gap: 10px 12px;
+    }
+    .card{ background: #fff; border:1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .card h2{ margin:0 0 8px 0; font-size: 14.5px; letter-spacing:.2px; font-weight: 700; }
+    .muted{ color: var(--muted); }
+
+    /* 区块定位 */
+    .def    { grid-area: def; text-align: center; background: linear-gradient(180deg, color-mix(in oklab, var(--primary), #fff 85%), #fff 92%); }
+    .ele    { grid-area: ele; }
+    .feat   { grid-area: feat; }
+    .model  { grid-area: model; }
+    .ex     { grid-area: ex; }
+    .mis    { grid-area: mis; }
+    .quiz   { grid-area: quiz; }
+
+    /* 核心定义 */
+    .def .one-liner{ font-weight: 800; font-size: 19px; line-height: 1.25; }
+    .def .subtitle { margin-top:6px; font-size:12px; color: var(--muted); }
+
+    /* 核心要素（思维导图风） */
+    .mindmap{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .node{ border:1px dashed color-mix(in oklab, var(--primary), #fff 70%); border-radius:10px; padding:8px; background:#fff; }
+    .node .k{ font-weight:600; font-size:12.5px; }
+    .node .d{ font-size:12px; color:#475569; margin-top:2px; }
+
+    /* 主要特征（对比表） */
+    .table{ width:100%; border-collapse: collapse; font-size:12px; }
+    .table th, .table td{ border: 1px solid var(--border); padding:6px 8px; vertical-align: top; }
+    .table th{ background: color-mix(in oklab, var(--accent), #fff 85%); text-align:left; }
+
+    /* 可视化模型（流程图 SVG 自适应） */
+    .flowwrap{ width:100%; height: 150px; border:1px solid var(--border); border-radius:10px; display:grid; place-items:center; }
+    .flowwrap svg{ width:98%; height:140px; }
+    .box{ fill:#fff; stroke: color-mix(in oklab, var(--primary), #000 10%); stroke-width:1; rx:8; }
+    .arrow{ stroke:#334155; stroke-width:1.5; marker-end: url(#arrowhead); fill:none; }
+    .label{ font-size:11px; fill:#0f172a; }
+
+    /* 典型案例 */
+    .examples{ display:grid; grid-template-columns: 1fr; gap:8px; }
+    .exitem{ border:1px solid var(--border); border-radius:10px; padding:8px; }
+    .exitem b{ font-size:12.5px; }
+    .tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .tag{ border:1px solid var(--border); border-radius:999px; padding:2px 8px; font-size:11px; color:#334155; }
+
+    /* 常见误区 */
+    .mistakes{ display:grid; gap:8px; }
+    .misitem{ display:grid; grid-template-columns: 26px 1fr; gap:8px; align-items:start; }
+    .misitem .x{ font-weight:900; font-size:18px; color:#dc2626; }
+    .misitem .ok{ font-weight:800; color: var(--accent); font-size:12px; }
+
+    /* 终极之问 */
+    .quizlist{ display:grid; gap:6px; font-size:13px; }
+    .quiz .card{ background: linear-gradient(180deg, #fff, color-mix(in oklab, var(--accent), #fff 90%)); }
+
+    /* 页脚 */
+    footer{ display:flex; justify-content:space-between; align-items:center; padding:10px 18px; border-top:1px solid var(--border); color:#475569; font-size:11.5px; }
+
+    /* 轮播导航 */
+    .carousel-nav{ position: fixed; inset: auto 0 12px 0; display:flex; justify-content:center; gap:10px; pointer-events:none; }
+    .nav-btn{ pointer-events:auto; border:1px solid var(--border); background:#fff; border-radius:12px; padding:10px 12px; box-shadow: 0 6px 16px rgba(15,23,42,.08); cursor:pointer; }
+    .dots{ display:flex; gap:6px; align-items:center; }
+    .dot{ width:8px; height:8px; border-radius:50%; background:#cbd5e1; }
+    .dot.active{ background: var(--primary); }
+
+    /* 响应式（非打印时小屏预览） */
+    @media (max-width: 1024px){
+      .slide{ width: min(100vw - 24px, 210mm); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部工具栏：导入 JSON、打印、参考线 -->
+  <div class="app-toolbar">
+    <button class="btn" onclick="prevSlide()" title="上一张">⬅︎</button>
+    <button class="btn" onclick="nextSlide()" title="下一张">➡︎</button>
+    <button class="btn" onclick="window.print()" title="打印全部">🖨️ 打印</button>
+    <button class="btn" onclick="toggleGuides()" title="切换参考线">🧭 参考线</button>
+
+    <div class="importer">
+      <input type="file" id="file" accept="application/json" class="btn" title="导入 JSON 文件" />
+      <textarea id="jsonText" placeholder='在此粘贴 JSON 数组…（见下方示例）'></textarea>
+      <button class="btn" onclick="appendFromTextarea()">➕ 追加生成</button>
+      <button class="btn" onclick="replaceFromTextarea()">🧹 清空后生成</button>
+    </div>
+  </div>
+
+  <!-- 轮播视口 -->
+  <div class="viewport" id="viewport">
+    <div class="slides" id="slides" aria-live="polite"></div>
+  </div>
+
+  <!-- 轮播底部导航 -->
+  <div class="carousel-nav">
+    <button class="nav-btn" onclick="prevSlide()" title="上一张">◀︎</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" onclick="nextSlide()" title="下一张">▶︎</button>
+  </div>
+
+  <script>
+    /* ================= JSON Schema（可选字段容错） =================
+    [
+      {
+        "title": "概念名称（必填）",
+        "subtitle": "副标题或一句话说明",
+        "version": "v1.0",
+        "theme": {"primary":"#2563eb","accent":"#10b981"},
+        "definition": {
+          "oneLiner": "一句话定义",
+          "keywords": "关键词：A · B · C"
+        },
+        "elements": [ {"k":"要素名","d":"简短描述"}, ... ],
+        "features": {
+          "type": "table|bullets",
+          "table": [ {"dim":"维度","new":"新质/本概念特征","old":"对比对象"}, ... ],
+          "bullets": ["要点1","要点2"]
+        },
+        "model": { "stages": ["阶段1","阶段2","阶段3","结果"], "note":"可选说明" },
+        "examples": [ {"title":"案例名","desc":"一句话","tags":["指标1","指标2"]}, ... ],
+        "misconceptions": [ {"wrong":"误区说法","right":"正确理解"}, ... ],
+        "quiz": ["问题1","问题2"]
+      }
+    ]
+    ================================================================ */
+
+    const slidesEl = document.getElementById('slides');
+    const dotsEl = document.getElementById('dots');
+    const fileInput = document.getElementById('file');
+    const jsonText = document.getElementById('jsonText');
+
+    const state = { data: [], index: 0, dragging: false, startX: 0, scrollX: 0 };
+
+    fileInput.addEventListener('change', (e)=>{
+      const file = e.target.files?.[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{ try{ const arr = JSON.parse(reader.result); appendData(arr); }catch(err){ alert('JSON 解析失败：'+err.message); } };
+      reader.readAsText(file);
+    });
+
+    function appendFromTextarea(){
+      const txt = jsonText.value.trim(); if(!txt) return;
+      try{ const arr = JSON.parse(txt); appendData(arr); }catch(err){ alert('JSON 解析失败：'+err.message); }
+    }
+    function replaceFromTextarea(){
+      const txt = jsonText.value.trim(); if(!txt) return;
+      try{ const arr = JSON.parse(txt); replaceData(arr); }catch(err){ alert('JSON 解析失败：'+err.message); }
+    }
+
+    function replaceData(arr){ state.data = []; slidesEl.innerHTML=''; appendData(arr, true); }
+    function appendData(arr, replace=false){
+      if(!Array.isArray(arr)) return alert('根节点应为数组');
+      arr.forEach(item=>{ state.data.push(item); slidesEl.appendChild(renderSlide(item)); });
+      updateDots();
+      goTo(state.data.length-1);
+    }
+
+    function renderSlide(d){
+      // 颜色主题（可选）
+      const primary = d?.theme?.primary || getComputedStyle(document.documentElement).getPropertyValue('--primary');
+      const accent  = d?.theme?.accent  || getComputedStyle(document.documentElement).getPropertyValue('--accent');
+
+      const slide = document.createElement('section');
+      slide.className = 'slide';
+      slide.setAttribute('role','region');
+      slide.style.setProperty('--primary', primary);
+      slide.style.setProperty('--accent', accent);
+
+      slide.innerHTML = `
+        <header>
+          <div class="titleblock">
+            <h1>【${safe(d.title)||'未命名概念'}】核心复习页</h1>
+            <p class="muted">${safe(d.subtitle)||'高度结构化 · 视觉化 · 关键词化 · 一张 A4 说清楚'}</p>
+          </div>
+          <div class="badges" aria-label="页签">
+            <span class="badge" style="color:${primary}; border-color:${mix(primary)}">Concept</span>
+            <span class="badge" style="color:${accent}; border-color:${mix(accent)}">A4</span>
+            <span class="badge">${safe(d.version)||'v1.0'}</span>
+          </div>
+        </header>
+        <main class="content">
+          <section class="card def">
+            <h2>一句话定义 | What is it?</h2>
+            <div class="one-liner">${safe(d?.definition?.oneLiner) || '（请在 JSON 的 definition.oneLiner 填写一句话定义）'}</div>
+            <div class="subtitle">${safe(d?.definition?.keywords) || '关键词：'}</div>
+          </section>
+
+          <section class="card ele">
+            <h2>核心要素 | Key Elements</h2>
+            <div class="mindmap">${(d.elements||[]).map(e=>`
+              <div class="node"><div class="k">${safe(e.k||'要素')}</div><div class="d">${safe(e.d||'描述')}</div></div>
+            `).join('') || emptyHint('在 elements 数组中添加要素')}</div>
+          </section>
+
+          <section class="card feat">
+            <h2>主要特征 | Key Features</h2>
+            ${ renderFeatures(d.features) }
+          </section>
+
+          <section class="card model">
+            <h2>它是如何运作的？ | How it Works</h2>
+            <div class="flowwrap">${renderFlow(d?.model?.stages||[])}</div>
+            ${ d?.model?.note ? `<div class="muted" style="margin-top:6px;font-size:12px;">${safe(d.model.note)}</div>` : ''}
+          </section>
+
+          <section class="card mis">
+            <h2>千万别搞错！ | Common Misconceptions</h2>
+            <div class="mistakes">${(d.misconceptions||[]).map(m=>`
+              <div class="misitem"><div class="x">✖</div><div><div><b>误区：</b>${safe(m.wrong||'—')}</div><div class="ok">✅ 正解：${safe(m.right||'—')}</div></div></div>
+            `).join('') || emptyHint('在 misconceptions 数组中添加误区')}</div>
+          </section>
+
+          <section class="card ex">
+            <h2>现实案例 | Real-World Examples</h2>
+            <div class="examples">${(d.examples||[]).map(ex=>`
+              <div class="exitem"><b>${safe(ex.title||'案例')}</b>
+                <div class="muted">${safe(ex.desc||'一句话说明')}</div>
+                <div class="tags">${(ex.tags||[]).map(t=>`<span class="tag">${safe(t)}</span>`).join('')}</div>
+              </div>`).join('') || emptyHint('在 examples 数组中添加案例')}</div>
+          </section>
+
+          <section class="card quiz">
+            <h2>问问你自己 | Test Yourself</h2>
+            <div class="quizlist">${(d.quiz||[]).map((q,i)=>`<div>${i+1}. ${safe(q)}</div>`).join('') || emptyHint('在 quiz 数组中添加问题')}</div>
+          </section>
+        </main>
+        <footer>
+          <div>模板：结构化 · 视觉化 · 关键词化｜主题色≤3，字体≤2（Apple Font 优先）</div>
+          <div>生成日期：<span class="today"></span></div>
+        </footer>
+      `;
+
+      // 填充日期
+      slide.querySelector('.today').textContent = todayStr();
+      return slide;
+    }
+
+    function renderFeatures(f){
+      if(!f) return `<div class="muted">${emptyHint('features 未提供')}</div>`;
+      if(f.type === 'bullets'){
+        const bullets = (f.bullets||[]).map(x=>`<div>• ${safe(x)}</div>`).join('');
+        return `<div style="font-size:12.5px; display:grid; gap:6px;">${bullets || emptyHint('添加 bullets')}</div>`;
+      }
+      // 默认：表格
+      const rows = (f.table||[]).map(r=>`<tr><td>${safe(r.dim||'维度')}</td><td>${safe(r.new||'新特征')}</td><td>${safe(r.old||'对比')}</td></tr>`).join('');
+      return `<table class="table"><thead><tr><th>维度</th><th>本概念</th><th>对比/传统</th></tr></thead><tbody>${rows || '<tr><td colspan="3">'+emptyHint('添加 table 行')+'</td></tr>'}</tbody></table>`;
+    }
+
+    function renderFlow(stages){
+      if(!stages.length){ return `<div class="muted" style="font-size:12px;">${emptyHint('在 model.stages 中给出流程阶段')}</div>`; }
+      // 生成简易水平流程图 SVG
+      const w = 800, h = 140; const pad = 30; const boxW = Math.max(120, Math.min(180, (w - pad*2) / stages.length - 10));
+      const boxH = 40; const gap = ((w - pad*2) - boxW*stages.length) / (stages.length - 1 || 1);
+      const defs = `<defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6"></polygon></marker></defs>`;
+      let rects = '', arrows = '', labels = '';
+      stages.forEach((s, i)=>{
+        const x = pad + i*(boxW+gap); const y = (h-boxH)/2;
+        rects += `<rect class="box" x="${x}" y="${y}" width="${boxW}" height="${boxH}" rx="8"/>`;
+        labels += `<text class="label" x="${x+10}" y="${y+25}">${escapeHtml(String(s))}</text>`;
+        if(i < stages.length-1){ const nx = pad + (i+1)*(boxW+gap); const midY = y + boxH/2; arrows += `<line class="arrow" x1="${x+boxW}" y1="${midY}" x2="${nx}" y2="${midY}"/>`; }
+      });
+      return `<svg viewBox="0 0 ${w} ${h}">${defs}${rects}${arrows}${labels}</svg>`;
+    }
+
+    function updateDots(){
+      dotsEl.innerHTML = '';
+      for(let i=0;i<state.data.length;i++){
+        const d = document.createElement('div'); d.className='dot'+(i===state.index?' active':''); d.onclick=()=>goTo(i); dotsEl.appendChild(d);
+      }
+    }
+
+    function goTo(i){
+      state.index = Math.max(0, Math.min(state.data.length-1, i));
+      const slideEl = slidesEl.children[state.index]; if(!slideEl) return;
+      slideEl.scrollIntoView({behavior:'smooth', inline:'center'});
+      updateDots();
+    }
+    function prevSlide(){ goTo(state.index-1); }
+    function nextSlide(){ goTo(state.index+1); }
+
+    // 键盘与触控切换
+    document.addEventListener('keydown', (e)=>{ if(e.key==='ArrowLeft') prevSlide(); if(e.key==='ArrowRight') nextSlide(); });
+    const viewport = document.getElementById('viewport');
+    viewport.addEventListener('touchstart', (e)=>{ state.dragging=true; state.startX=e.touches[0].clientX; });
+    viewport.addEventListener('touchmove', (e)=>{ /* 阻止垂直滚动触发 */ });
+    viewport.addEventListener('touchend', (e)=>{ if(!state.dragging) return; const dx = e.changedTouches[0].clientX - state.startX; state.dragging=false; if(Math.abs(dx)>40){ if(dx<0) nextSlide(); else prevSlide(); }});
+
+    // 参考线
+    function toggleGuides(){
+      const on = document.body.dataset.guides === 'on';
+      document.body.dataset.guides = on ? 'off' : 'on';
+      document.querySelectorAll('.card').forEach(c=>{
+        c.style.backgroundImage = on ? '' :
+          'repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(99,102,241,.06) 24px),\
+           repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(99,102,241,.06) 24px)';
+        c.style.backgroundSize = '24px 24px, 24px 24px';
+      });
+    }
+    window.toggleGuides = toggleGuides;
+
+    // 工具函数
+    function safe(s){ return s==null? '' : escapeHtml(String(s)); }
+    function escapeHtml(str){ return str.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+    function mix(c){ return `color-mix(in oklab, ${c}, #fff 60%)`; }
+    function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    function emptyHint(msg){ return `<div class="muted" style="font-size:12px;">（${escapeHtml(msg)}）</div>`; }
+
+    // 初始化：放入一个空白模板 + 示例“新质生产力”
+    const demo = [
+      {
+        title: "空白模板",
+        subtitle: "把你的 JSON 粘贴后，点击“追加生成”或“清空后生成”",
+        definition: { oneLiner: "一句话定义（示例）", keywords: "关键词：A · B · C" },
+        elements: [ {k:"要素A", d:"简述"}, {k:"要素B", d:"简述"}, {k:"要素C", d:"简述"} ],
+        features: { type:"table", table:[ {dim:"驱动", new:"创新驱动", old:"投入驱动"} ] },
+        model: { stages:["要素","能力","场景","结果"], note:"使用 model.stages 自动绘制流程图" },
+        examples: [ {title:"案例A", desc:"一句话说明", tags:["指标1","指标2"]} ],
+        misconceptions: [ {wrong:"常见误解", right:"正确理解"} ],
+        quiz: ["用一句话解释此概念", "给出 3 个衡量指标"]
+      },
+      {
+        title: "新质生产力",
+        subtitle: "结构化·视觉化·关键词化",
+        version: "v1.0",
+        theme: { primary: "#2563eb", accent: "#10b981" },
+        definition: {
+          oneLiner: "由科技创新与绿色低碳驱动，重构要素配置与产业组织、形成高质量与可持续增长动能的先进生产力形态。",
+          keywords: "高技术 · 高效率 · 高质量 · 可持续 · 生态协同"
+        },
+        elements: [
+          {k:"科技创新", d:"AI/大模型 · 先进制造 · 新材料/芯片 · 工业软件"},
+          {k:"数据要素", d:"数据治理 · 数据资产化 · 隐私计算"},
+          {k:"人才与组织", d:"复合型人才 · 敏捷组织 · 工程文化"},
+          {k:"产业生态", d:"平台+链主 · 专精特新 · 标准与接口"},
+          {k:"绿色低碳", d:"风光储 · 氢能 · 循环经济 · LCA"},
+          {k:"制度与资本", d:"知识产权 · 标准体系 · 科创金融"}
+        ],
+        features: {
+          type: "table",
+          table: [
+            {dim:"驱动", new:"创新/数据/绿色驱动", old:"要素投入驱动"},
+            {dim:"资源", new:"数据与算力为核心", old:"资本/土地/劳动力"},
+            {dim:"组织", new:"平台化、生态协同", old:"科层化、链式"}
+          ]
+        },
+        model: { stages:["要素投入","科技创新","数据要素","能力引擎","运营系统","高质量产出"], note:"数据闭环与标准迭代" },
+        examples: [
+          {title:"智能制造工厂", desc:"数字孪生+柔性产线+自优化", tags:["OEE↑","不良率↓","交付周期↓"]},
+          {title:"源网荷储协同", desc:"风光储一体化 · 需求响应", tags:["LCOE↓","碳强度↓","稳定性↑"]}
+        ],
+        misconceptions: [
+          {wrong:"=上马新设备/信息化系统", right:"技术×数据×流程×组织的系统性重构"},
+          {wrong:"只与互联网相关", right:"制造/能源/交通/政务/农业等均适用"}
+        ],
+        quiz: ["用一句话描述你行业的新质路径（驱动/要素/指标）", "画出要素→能力→场景→结果闭环并给出 3 个量化指标"]
+      }
+    ];
+
+    appendData(demo);
+  </script>
+</body>
+</html>
