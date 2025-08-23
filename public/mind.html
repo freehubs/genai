@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心智模型收藏</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 3em;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+    .bento-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .bento {
+      border-radius: 18px;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .bento:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .bento h2 {
+      margin-top: 0;
+      font-size: 1.4em;
+      color: #1e3c72;
+    }
+    .bento p {
+      color: #444;
+      line-height: 1.6;
+    }
+    .bento ul {
+      padding-left: 20px;
+      color: #444;
+    }
+    /* 不同卡片配色 */
+    .theory { background: #e8f0fe; }
+    .structure { background: #e6f4ea; }
+    .example { background: #fff4e6; }
+    .application { background: #f3e8ff; }
+    .summary { background: #ffe8ec; }
+  </style>
+</head>
+<body>
+  <h1>心智模型卡片收藏</h1>
+
+  <div class="bento-container">
+    <div class="bento theory">
+      <h2>长短板理论</h2>
+      <p>水桶的容量取决于最短的木板。短板 → 反思不足，长板 → 激励优势。</p>
+    </div>
+    <div class="bento structure">
+      <h2>模型结构</h2>
+      <ul>
+        <li>木桶 → 系统整体</li>
+        <li>短板 → 不足，需要补齐</li>
+        <li>长板 → 优势，需要放大</li>
+        <li>循环 → 持续成长</li>
+      </ul>
+    </div>
+    <div class="bento example">
+      <h2>案例</h2>
+      <p><b>柯达：</b> 因害怕削弱胶卷优势，错失数码转型机会。</p>
+      <p><b>田忌赛马：</b> 通过排兵布阵，扬长避短赢得胜利。</p>
+    </div>
+    <div class="bento application">
+      <h2>启发应用</h2>
+      <ul>
+        <li>个人成长：补齐短板，放大长板</li>
+        <li>企业战略：构建差异化优势</li>
+        <li>竞争分析：认清长短，制定对策</li>
+      </ul>
+    </div>
+    <div class="bento summary">
+      <h2>总结</h2>
+      <p>先补齐短板，再放大长板，进入正向循环，推动系统持续成长。</p>
+    </div>
+  </div>
+</body>
+</html>
