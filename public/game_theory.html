@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>博弈论模拟器 · Apple 风格</title>
+  <meta name="description" content="2×2 正常型博弈编辑、均衡分析、动态模拟的轻量网页应用"/>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='%23000' d='M176.7 124.5c-.2-22.1 18.1-32.7 18.9-33.1-10.3-15.1-26.2-17.1-31.8-17.3-13.6-1.4-26.5 8.1-33.4 8.1-6.9 0-17.6-7.9-28.9-7.6-14.9.2-28.7 8.6-36.3 21.9-15.5 26.8-4 66.4 11.1 88.1 7.4 10.4 16.1 22.1 27.7 21.7 11.1-.4 15.3-7 28.8-7 13.5 0 17.3 7 29 6.8 12-.2 19.6-10.6 26.9-21 8.5-12.5 12-24.6 12.2-25.2-.2-.1-23.3-8.9-23.2-35.4zM151 57.3c6.1-7.4 10.2-17.8 9-28.1-8.7.4-19.6 5.8-26 13.2-5.7 6.6-10.7 17.3-9.4 27.5 9.9.8 20.2-5 26.4-12.6z'/%3E%3C/svg%3E"/>
+  <style>
+    :root{
+      --bg: #0b0b0c;
+      --card: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.18);
+      --text: #e6e6eb;
+      --muted: #b9bac4;
+      --accent: #4da3ff;
+      --accent2: #9b8cff;
+      --green: #4cd964;
+      --red: #ff3b30;
+      --yellow: #ffd60a;
+      --shadow: 0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.24);
+      --radius: 24px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font: 16px/1.6 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 10% -10%, #213047 0%, transparent 60%),
+                  radial-gradient(1000px 900px at 110% 10%, #412b5e 0%, transparent 60%),
+                  linear-gradient(180deg, #0b0b0c, #0e1014);
+      overflow-y:auto;
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:32px 20px 80px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:36px;height:36px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+    h1{margin:0;font-weight:700;letter-spacing:.3px}
+    .sub{color:var(--muted);font-size:14px;margin-top:2px}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));backdrop-filter: blur(16px); box-shadow:var(--shadow)}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    @media (max-width:1000px){.grid{grid-template-columns:1fr;}}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(18px); padding:20px}
+    .card h2{margin:0 0 8px 0;font-size:18px}
+    .card .hint{color:var(--muted);font-size:13px;margin-bottom:12px}
+
+    /* Matrix */
+    .matrix{display:grid;grid-template-columns:120px repeat(2,1fr);border-radius:16px;overflow:hidden;border:1px solid var(--stroke)}
+    .matrix .cell{border-right:1px solid var(--stroke);border-bottom:1px solid var(--stroke);padding:10px;min-height:64px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+    .matrix .cell:last-child{border-right:none}
+    .matrix .head{background:rgba(255,255,255,.06);font-weight:600}
+    .matrix .rowlab{font-weight:600}
+    .pair{display:flex;gap:6px;align-items:center}
+    .pair input{width:72px;padding:8px 10px;border-radius:12px;border:1px solid var(--stroke);background:rgba(255,255,255,.08);color:var(--text);outline:none}
+    .pair label{font-size:12px;color:var(--muted)}
+    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .tag{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));cursor:pointer;user-select:none}
+    .tag:hover{transform:translateY(-1px)}
+
+    .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    button{padding:10px 14px;border-radius:14px;border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05)); color:var(--text); cursor:pointer; box-shadow: var(--shadow)}
+    button:hover{transform:translateY(-1px)}
+    button.primary{border-color:transparent;background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0b0b0c; font-weight:700}
+
+    /* Analysis */
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
+    @media (max-width:600px){.kpi{grid-template-columns:1fr 1fr}}
+    .kpi .box{padding:14px;border:1px solid var(--stroke);border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03))}
+    .kpi .box .label{font-size:12px;color:var(--muted)}
+    .kpi .box .value{font-size:18px;font-weight:700}
+
+    .ne-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+    .cellNE{padding:12px;border:1px dashed var(--stroke);border-radius:12px}
+
+    /* Simulation */
+    .sim-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 8px}
+    .sim-controls label{font-size:12px;color:var(--muted)}
+    .sim-controls input{width:100%;appearance:none;background:rgba(255,255,255,.08);border:1px solid var(--stroke);height:38px;border-radius:12px;color:var(--text);padding:0 10px}
+    .chart{width:100%;height:220px;border-radius:16px;border:1px solid var(--stroke);background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));position:relative;overflow:hidden}
+    .chart svg{width:100%;height:100%}
+    .legend{display:flex;gap:12px;margin-top:8px;font-size:12px;color:var(--muted)}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+    .dot.p1{background:var(--accent)}
+    .dot.p2{background:var(--green)}
+
+    /* Toast */
+    .toast{position:fixed;right:16px;bottom:16px;background:rgba(20,20,24,.7);backdrop-filter:blur(10px);border:1px solid var(--stroke);border-radius:14px;padding:10px 14px;opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    .foot{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+    .badge{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--stroke)}
+    .help{font-size:13px;color:var(--muted)}
+    .help ul{margin:6px 0 0 18px}
+    .help li{margin:4px 0}
+    .success{color:var(--green)}
+    .warn{color:var(--yellow)}
+    .danger{color:var(--red)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <img class="logo" alt="logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7l10 5l10-5zm0 7L2 4v13l10 5zm0 0l10-5v13l-10 5z' opacity='.2'/%3E%3Cpath fill='white' d='M12 2L2 7l10 5l10-5z'/%3E%3C/svg%3E"/>
+        <div>
+          <h1>博弈论模拟器</h1>
+          <div class="sub">2×2 正常型博弈 · 纯/混合纳什均衡 · 复制子动态（Replicator）</div>
+        </div>
+      </div>
+      <div class="pill"><span class="badge">Beta</span><span id="status">就绪</span></div>
+    </header>
+
+    <div class="grid">
+      <!-- 左：编辑器与分析 -->
+      <section class="card">
+        <h2>① 定义博弈</h2>
+        <div class="hint">输入每个格子的收益（格式：玩家1, 玩家2）。行是玩家1策略（R1/R2），列是玩家2策略（C1/C2）。</div>
+        <div class="matrix" id="matrix">
+          <div class="cell head"></div>
+          <div class="cell head">C1</div>
+          <div class="cell head">C2</div>
+
+          <div class="cell rowlab">R1</div>
+          <div class="cell">
+            <div class="pair"><label>U1,U2</label><input id="r1c1u1" type="number" step="0.1"><input id="r1c1u2" type="number" step="0.1"></div>
+          </div>
+          <div class="cell">
+            <div class="pair"><label>U1,U2</label><input id="r1c2u1" type="number" step="0.1"><input id="r1c2u2" type="number" step="0.1"></div>
+          </div>
+
+          <div class="cell rowlab">R2</div>
+          <div class="cell">
+            <div class="pair"><label>U1,U2</label><input id="r2c1u1" type="number" step="0.1"><input id="r2c1u2" type="number" step="0.1"></div>
+          </div>
+          <div class="cell">
+            <div class="pair"><label>U1,U2</label><input id="r2c2u1" type="number" step="0.1"><input id="r2c2u2" type="number" step="0.1"></div>
+          </div>
+        </div>
+        <div class="tags" id="presets"></div>
+        <div class="controls">
+          <button class="primary" id="analyze">分析均衡</button>
+          <button id="swapPlayers">交换玩家</button>
+          <button id="normalize">归一化（可选）</button>
+          <button id="save">保存</button>
+          <button id="load">载入</button>
+          <button id="export">导出JSON</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none"/>
+          <button id="import">导入JSON</button>
+        </div>
+
+        <div class="help">
+          <ul>
+            <li>纯策略均衡：在某格子里，行玩家对该列是最佳回应，列玩家对该行也是最佳回应。</li>
+            <li>混合均衡（仅 2×2）：令对手无差异得到混合概率 <code>p</code>（行选 R1 的概率）、<code>q</code>（列选 C1 的概率）。</li>
+            <li>复制子动态：连续时间近似，观察群体策略份额演化。不是学习最优化，仅作直觉演示。</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 右：结果与模拟 -->
+      <section class="card">
+        <h2>② 均衡与洞察</h2>
+        <div class="kpi">
+          <div class="box"><div class="label">纯纳什均衡（坐标）</div><div class="value" id="pureNE">—</div></div>
+          <div class="box"><div class="label">混合均衡 (p, q)</div><div class="value" id="mixedNE">—</div></div>
+          <div class="box"><div class="label">优势策略</div><div class="value" id="dominance">—</div></div>
+        </div>
+        <div class="ne-grid">
+          <div class="cellNE" id="explain1">—</div>
+          <div class="cellNE" id="explain2">—</div>
+        </div>
+
+        <h2 style="margin-top:14px">③ 复制子动态模拟</h2>
+        <div class="sim-controls">
+          <div>
+            <label>初始 p（行:R1 概率）</label>
+            <input id="p0" type="number" min="0" max="1" step="0.01" value="0.5" />
+          </div>
+          <div>
+            <label>初始 q（列:C1 概率）</label>
+            <input id="q0" type="number" min="0" max="1" step="0.01" value="0.5" />
+          </div>
+          <div>
+            <label>步长 dt（0.001–0.1）</label>
+            <input id="dt" type="number" min="0.001" max="0.1" step="0.001" value="0.01" />
+          </div>
+        </div>
+        <div class="controls">
+          <button class="primary" id="runSim">开始模拟</button>
+          <button id="resetSim">重置</button>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="legend"><span class="dot p1"></span> p(t) · 行玩家（R1概率） <span class="dot p2"></span> q(t) · 列玩家（C1概率）</div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:18px">
+      <h2>使用建议</h2>
+      <p class="help">用预设快速上手，再调整收益测试你的设想。点击“分析均衡”之后，可用复制子动态观察群体层面的演化路径与稳定性（正式研究请使用学术工具）。</p>
+      <div class="foot">Made with ❤ · Apple 风格玻璃拟态 UI · <span class="badge">单文件本地运行</span></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">已复制到剪贴板</div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const status = $('status');
+  const toast = $('toast');
+
+  const fields = [
+    ['r1c1u1','r1c1u2'], ['r1c2u1','r1c2u2'],
+    ['r2c1u1','r2c1u2'], ['r2c2u1','r2c2u2']
+  ];
+
+  const PRESETS = {
+    '囚徒困境': [[-1,-1],[-3,0],[0,-3],[-2,-2]],
+    '鹿猎(Stag Hunt)': [[3,3],[0,2],[2,0],[1,1]],
+    '胆小鬼(Chicken)': [[2,2],[-1,3],[3,-1],[-10,-10]],
+    '配对硬币(Matching Pennies)': [[1,-1],[-1,1],[-1,1],[1,-1]],
+    '协作收益差': [[4,4],[1,3],[3,1],[2,2]],
+  };
+
+  function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1200); }
+
+  function setMatrix(arr){
+    // arr: [ [u1,u2] x4 ] order: r1c1, r1c2, r2c1, r2c2
+    const ids = [].concat(...fields);
+    arr.flat().forEach((v,i)=>{
+      const id = ids[i];
+      $(id).value = typeof v==='number'? v: parseFloat(v||0);
+    });
+    analyze();
+  }
+
+  function getMatrix(){
+    const vals = fields.map(([a,b])=>[parseFloat($(a).value), parseFloat($(b).value)]);
+    return {
+      u1: [ vals[0][0], vals[1][0], vals[2][0], vals[3][0] ],
+      u2: [ vals[0][1], vals[1][1], vals[2][1], vals[3][1] ]
+    };
+  }
+
+  function bestResponses(mat){
+    // mat.u1/u2 arrays in order [r1c1, r1c2, r2c1, r2c2]
+    const u1 = mat.u1, u2 = mat.u2;
+    // For player1 given C1 vs C2
+    const brP1_C1 = (u1[0]===u1[2]? [0,2] : (u1[0]>u1[2] ? [0] : [2]));
+    const brP1_C2 = (u1[1]===u1[3]? [1,3] : (u1[1]>u1[3] ? [1] : [3]));
+    // For player2 given R1 vs R2 (compare columns within each row)
+    const brP2_R1 = (u2[0]===u2[1]? [0,1] : (u2[0]>u2[1] ? [0] : [1]));
+    const brP2_R2 = (u2[2]===u2[3]? [2,3] : (u2[2]>u2[3] ? [2] : [3]));
+    const br = new Set([...brP1_C1, ...brP1_C2, ...brP2_R1, ...brP2_R2]);
+    const pureNE = [];
+    [[0,2],[1,3]].forEach((pair, ci)=>{
+      // for each column choice set, check cells
+      pair.forEach(idx=>{
+        const row = idx<2? 0:1;
+        const col = idx%2===0? 0:1;
+        const p1Best = (col===0? brP1_C1.includes(idx): brP1_C2.includes(idx));
+        const p2Best = (row===0? brP2_R1.includes(idx): brP2_R2.includes(idx));
+        if(p1Best && p2Best) pureNE.push([row,col]);
+      });
+    });
+    return {br, pureNE};
+  }
+
+  function mixedEquilibrium(mat){
+    // Solve by indifference (2x2). Return {p,q, valid}
+    const a11=mat.u1[0], a12=mat.u1[1], a21=mat.u1[2], a22=mat.u1[3];
+    const b11=mat.u2[0], b12=mat.u2[1], b21=mat.u2[2], b22=mat.u2[3];
+
+    const denomQ = (a11 - a21) - (a12 - a22); // = a11 - a21 - a12 + a22
+    const denomP = (b11 - b21) - (b12 - b22);
+    let q = (a22 - a12) / (denomQ||Infinity);
+    let p = (b22 - b21) / (denomP||Infinity);
+
+    const finite = isFinite(p) && isFinite(q);
+    const in01 = (p>=0 && p<=1 && q>=0 && q<=1);
+    return {p:+p.toFixed(4), q:+q.toFixed(4), valid: finite && in01};
+  }
+
+  function dominance(mat){
+    const a11=mat.u1[0], a12=mat.u1[1], a21=mat.u1[2], a22=mat.u1[3];
+    const b11=mat.u2[0], b12=mat.u2[1], b21=mat.u2[2], b22=mat.u2[3];
+    let msg=[];
+    // Player 1: R1 vs R2 across both columns
+    if(a11>=a21 && a12>=a22 && (a11>a21||a12>a22)) msg.push('P1: R1 严/弱优势 R2');
+    else if(a11<=a21 && a12<=a22 && (a11<a21||a12<a22)) msg.push('P1: R2 严/弱优势 R1');
+    // Player 2: C1 vs C2 across both rows
+    if(b11>=b12 && b21>=b22 && (b11>b12||b21>b22)) msg.push('P2: C1 严/弱优势 C2');
+    else if(b11<=b12 && b21<=b22 && (b11<b12||b21<b22)) msg.push('P2: C2 严/弱优势 C1');
+    return msg.length? msg.join('；'): '无';
+  }
+
+  function analyze(){
+    const mat = getMatrix();
+    const {pureNE} = bestResponses(mat);
+    const mix = mixedEquilibrium(mat);
+    const dom = dominance(mat);
+
+    $('dominance').textContent = dom;
+    $('pureNE').textContent = pureNE.length? pureNE.map(([r,c])=>`(${r+1},${c+1})`).join('，'): '无';
+    $('mixedNE').innerHTML = mix.valid? `(p=${mix.p}, q=${mix.q})` : '无 / 不适用';
+
+    const explain1 = [];
+    explain1.push('· <b>最佳回应</b>：给定对手策略，能使自身收益最大的选择。纯NE 同时是双方的最佳回应。');
+    if(pureNE.length){
+      explain1.push(`· 本局存在 <b>${pureNE.length}</b> 个纯NE：${pureNE.map(([r,c])=>`R${r+1}×C${c+1}`).join('，')}。`);
+    } else {
+      explain1.push('· 本局 <b>无纯NE</b>。');
+    }
+    $('explain1').innerHTML = explain1.join('<br/>');
+
+    const explain2 = [];
+    if(mix.valid){
+      explain2.push(`· <b>混合NE</b> 使对手无差异：行用 p 选 R1，列用 q 选 C1。`);
+      explain2.push(`· 若复制子动态以 p,q 为初值，轨迹可能收敛/环绕于该点（依收益结构而定）。`);
+    } else {
+      explain2.push('· 无有效的 2×2 混合NE，可能已被优势策略消解，或等收益退化。');
+    }
+    $('explain2').innerHTML = explain2.join('<br/>');
+  }
+
+  // Simulation (replicator dynamics)
+  let simData = [];
+  let running = false, rafId = null;
+
+  function payoffRow1(q, m){ return q*m.u1[0] + (1-q)*m.u1[1]; }
+  function payoffRow2(q, m){ return q*m.u1[2] + (1-q)*m.u1[3]; }
+  function payoffCol1(p, m){ return p*m.u2[0] + (1-p)*m.u2[2]; }
+  function payoffCol2(p, m){ return p*m.u2[1] + (1-p)*m.u2[3]; }
+
+  function step(p,q,dt,m){
+    const fR1 = payoffRow1(q,m), fR2 = payoffRow2(q,m);
+    const gC1 = payoffCol1(p,m), gC2 = payoffCol2(p,m);
+    const dp = p*(1-p)*(fR1 - fR2);
+    const dq = q*(1-q)*(gC1 - gC2);
+    p = Math.min(1, Math.max(0, p + dt*dp));
+    q = Math.min(1, Math.max(0, q + dt*dq));
+    return [p,q];
+  }
+
+  function draw(){
+    const el = $('chart');
+    const w = el.clientWidth, h = el.clientHeight;
+    const maxN = 1000; // cap points for performance
+    const data = simData.length>maxN? simData.slice(-maxN): simData;
+    const pathP = data.map((d,i)=>`${i===0?'M':'L'} ${i/(data.length-1||1)*w} ${h - d.p*h}`).join(' ');
+    const pathQ = data.map((d,i)=>`${i===0?'M':'L'} ${i/(data.length-1||1)*w} ${h - d.q*h}`).join(' ');
+    const grid = [];
+    for(let i=0;i<=10;i++){
+      const y=i/10*h; grid.push(`<line x1='0' y1='${y}' x2='${w}' y2='${y}' stroke='rgba(255,255,255,.08)' stroke-width='1'/>`);
+    }
+    el.innerHTML = `<svg viewBox='0 0 ${w} ${h}' preserveAspectRatio='none'>
+      ${grid.join('')}
+      <path d="${pathP}" fill="none" stroke="url(#gp)" stroke-width="2.2"/>
+      <path d="${pathQ}" fill="none" stroke="url(#gq)" stroke-width="2.2"/>
+      <defs>
+        <linearGradient id="gp" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()}"/>
+          <stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim()}"/>
+        </linearGradient>
+        <linearGradient id="gq" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#4cd964"/>
+          <stop offset="100%" stop-color="#6ee7b7"/>
+        </linearGradient>
+      </defs>
+    </svg>`;
+  }
+
+  function run(){
+    if(!running) return;
+    const m = getMatrix();
+    const dt = Math.max(0.001, Math.min(0.1, parseFloat($('dt').value)||0.01));
+    let {p,q} = simData.at(-1);
+    for(let i=0;i<5;i++){ // multi-steps per frame for smoother trace
+      [p,q] = step(p,q,dt,m);
+      simData.push({p,q});
+    }
+    draw();
+    rafId = requestAnimationFrame(run);
+  }
+
+  // UI wiring
+  $('analyze').onclick = analyze;
+  $('swapPlayers').onclick = ()=>{
+    const m = getMatrix();
+    const u1 = [m.u2[0],m.u2[1],m.u2[2],m.u2[3]];
+    const u2 = [m.u1[0],m.u1[1],m.u1[2],m.u1[3]];
+    setMatrix([[u1[0],u2[0]],[u1[1],u2[1]],[u1[2],u2[2]],[u1[3],u2[3]]]);
+  };
+  $('normalize').onclick = ()=>{
+    // shift & scale U1/U2 to [0,1] (affine transform preserves BR / NE in ordinal sense)
+    const m = getMatrix();
+    const all = m.u1.concat(m.u2);
+    const min = Math.min(...all), max = Math.max(...all);
+    const scale = (v)=> (max===min? 0.5 : (v-min)/(max-min));
+    const arr = [0,1,2,3].map(i=>[scale(m.u1[i]), scale(m.u2[i])]);
+    setMatrix(arr);
+  };
+
+  $('save').onclick = ()=>{
+    const key='gt_sim_last';
+    localStorage.setItem(key, JSON.stringify(getMatrix()));
+    showToast('已保存到本地');
+  };
+  $('load').onclick = ()=>{
+    const key='gt_sim_last';
+    const raw=localStorage.getItem(key);
+    if(!raw){ showToast('无本地保存'); return; }
+    const m = JSON.parse(raw);
+    const arr=[ [m.u1[0],m.u2[0]],[m.u1[1],m.u2[1]],[m.u1[2],m.u2[2]],[m.u1[3],m.u2[3]] ];
+    setMatrix(arr);
+    showToast('已载入');
+  };
+
+  $('export').onclick = ()=>{
+    const data = {version:1, matrix:getMatrix(), timestamp:Date.now()};
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'game.json'; a.click(); URL.revokeObjectURL(url);
+  };
+  $('import').onclick = ()=> $('importFile').click();
+  $('importFile').onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{ const obj = JSON.parse(reader.result);
+        const m = obj.matrix || obj; // tolerate plain matrix
+        const arr = [ [m.u1[0],m.u2[0]],[m.u1[1],m.u2[1]],[m.u1[2],m.u2[2]],[m.u1[3],m.u2[3]] ];
+        setMatrix(arr); showToast('导入成功');
+      }catch(err){ showToast('JSON 无效'); }
+    };
+    reader.readAsText(f);
+  };
+
+  $('runSim').onclick = ()=>{
+    if(running){ return; }
+    const p0 = Math.min(1, Math.max(0, parseFloat($('p0').value)||0.5));
+    const q0 = Math.min(1, Math.max(0, parseFloat($('q0').value)||0.5));
+    simData = [{p:p0, q:q0}];
+    running = true; run();
+  };
+  $('resetSim').onclick = ()=>{ running=false; cancelAnimationFrame(rafId); simData=[]; $('chart').innerHTML=''; };
+
+  // Build preset chips
+  const container = $('presets');
+  Object.keys(PRESETS).forEach(name=>{
+    const chip = document.createElement('div'); chip.className='tag'; chip.textContent=name;
+    chip.onclick = ()=> setMatrix(PRESETS[name]);
+    container.appendChild(chip);
+  });
+
+  // Defaults: Prisoner's Dilemma
+  setMatrix(PRESETS['囚徒困境']);
+  status.textContent = '可编辑';
+
+  // live analyze on input change
+  fields.flat().forEach(id=> $(id).addEventListener('input', analyze));
+
+  // Resize observer for chart
+  new ResizeObserver(()=> draw()).observe($('chart'));
+})();
+</script>
+</body>
+</html>
