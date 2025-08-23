@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Glass RSS · Apple 风格玻璃拟态</title>
+    <meta name="theme-color" content="#0b0c0f">
+    <style>
+      :root {
+        --bg: radial-gradient(1200px 800px at 10% 10%, rgba(255,255,255,0.12), transparent 50%),
+              radial-gradient(1000px 900px at 90% 0%, rgba(100,180,255,0.18), transparent 40%),
+              radial-gradient(1000px 900px at 50% 100%, rgba(255,120,180,0.16), transparent 40%),
+              linear-gradient(180deg, #0b0c0f, #0b0c0f);
+        --glass-bg: rgba(255, 255, 255, 0.06);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --text: #eaeaf0;
+        --text-dim: #b9bcc4;
+        --accent: #77aaff;
+        --danger: #ff6b6b;
+        --ok: #68e0a9;
+        --shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 0 0 1px var(--glass-border);
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-sm: 10px;
+        --blur: 22px;
+        --sidebar-w: 280px;
+        --list-w: 420px;
+        --top-h: 64px;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: radial-gradient(1200px 800px at 10% 10%, rgba(255,255,255,0.66), transparent 50%),
+                radial-gradient(1000px 900px at 90% 0%, rgba(120,180,255,0.35), transparent 40%),
+                linear-gradient(180deg, #eef1f7, #e9edf6);
+          --glass-bg: rgba(255, 255, 255, 0.55);
+          --glass-border: rgba(0, 0, 0, 0.08);
+          --text: #0f1222;
+          --text-dim: #4a5060;
+          --shadow: 0 10px 30px rgba(0,0,0,0.10), inset 0 0 0 1px var(--glass-border);
+        }
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        color: var(--text);
+        background: var(--bg) fixed;
+        font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      }
+      .app {
+        position: relative;
+        height: 100%;
+        display: grid;
+        grid-template-rows: var(--top-h) 1fr;
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        display: grid;
+        grid-template-columns: 220px 1fr auto;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        backdrop-filter: saturate(140%) blur(var(--blur));
+        -webkit-backdrop-filter: saturate(140%) blur(var(--blur));
+        background: var(--glass-bg);
+        box-shadow: var(--shadow);
+        z-index: 10;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .brand .logo {
+        width: 28px; height: 28px;
+        display: grid; place-items: center;
+        border-radius: 9px;
+        background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+        box-shadow: inset 0 0 0 1px var(--glass-border);
+      }
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        background: var(--glass-bg);
+        box-shadow: inset 0 0 0 1px var(--glass-border);
+      }
+      .search input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        outline: none;
+        font-size: 14px;
+      }
+      .actions { display: flex; align-items: center; gap: 8px; }
+      .btn {
+        appearance: none; border: none; color: var(--text);
+        background: var(--glass-bg); padding: 8px 12px; border-radius: 12px;
+        box-shadow: inset 0 0 0 1px var(--glass-border);
+        display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+        transition: transform .08s ease, background .2s ease;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btn:active { transform: translateY(0); }
+      .btn.primary { background: linear-gradient(180deg, rgba(120,170,255,0.45), rgba(120,170,255,0.25)); color: #0b1020; }
+      .btn.danger { background: linear-gradient(180deg, rgba(255,120,140,0.45), rgba(255,120,140,0.25)); color: #2a0b12; }
+
+      .layout {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) var(--list-w) 1fr;
+        grid-template-rows: 1fr;
+        gap: 14px;
+        padding: 14px;
+        height: calc(100vh - var(--top-h));
+        box-sizing: border-box;
+      }
+      .panel { background: var(--glass-bg); box-shadow: var(--shadow); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+
+      .sidebar { padding: 10px; }
+      .section-title { opacity: 0.8; font-weight: 600; font-size: 12px; letter-spacing: .4px; margin: 8px 8px 6px; }
+      .feed-list, .smart-list { list-style: none; margin: 0; padding: 4px; display: grid; gap: 4px; }
+      .feed-item, .smart-item { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+      .feed-item:hover, .smart-item:hover { background: rgba(255,255,255,0.08); }
+      .feed-item.active, .smart-item.active { background: rgba(120,170,255,0.25); color: #0b1020; }
+      .count { font-variant-numeric: tabular-nums; opacity: 0.8; }
+
+      .list { display: flex; flex-direction: column; }
+      .list-header { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 10px 12px; box-shadow: inset 0 -1px 0 0 var(--glass-border); }
+      .items { overflow: auto; padding: 10px; display: grid; gap: 8px; }
+      .item { border-radius: 14px; padding: 12px; display: grid; gap: 6px; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); box-shadow: inset 0 0 0 1px var(--glass-border); cursor: pointer; }
+      .item:hover { background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); }
+      .item.unread .title { font-weight: 700; }
+      .item .title { font-size: 15px; }
+      .item .meta { font-size: 12px; color: var(--text-dim); display: flex; gap: 10px; }
+      .badge { padding: 2px 6px; border-radius: 999px; font-size: 11px; background: rgba(120,170,255,0.35); color: #0b1020; }
+
+      .detail { display: grid; grid-template-rows: auto 1fr; }
+      .detail-header { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px; box-shadow: inset 0 -1px 0 0 var(--glass-border); }
+      .detail-title { font-size: 20px; font-weight: 700; margin: 0; }
+      .detail-meta { font-size: 12px; color: var(--text-dim); display: flex; gap: 12px; margin-top: 4px; }
+      .detail-actions { display: flex; gap: 8px; align-items: center; }
+      .detail-body { overflow: auto; padding: 16px; }
+      .detail-body img { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+      .detail-body a { color: var(--accent); }
+      .empty { opacity: 0.7; padding: 30px; text-align: center; }
+
+      .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: none; align-items: center; justify-content: center; z-index: 50; }
+      .modal { width: min(560px, 92vw); background: var(--glass-bg); border-radius: 16px; box-shadow: var(--shadow); backdrop-filter: blur(var(--blur)); padding: 16px; }
+      .field { display: grid; gap: 6px; margin: 8px 0; }
+      .input { padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); color: var(--text); }
+      .row { display: flex; gap: 8px; align-items: center; }
+      .grow { flex: 1; }
+
+      .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--glass-bg); color: var(--text); border-radius: 12px; padding: 10px 14px; box-shadow: var(--shadow); display: none; z-index: 60; }
+
+      @media (max-width: 1200px) {
+        .layout { grid-template-columns: var(--sidebar-w) 1fr; }
+        .detail { display: none; }
+      }
+      @media (max-width: 860px) {
+        .layout { grid-template-columns: 1fr; }
+        .sidebar { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">🍎</div>
+          <div>Glass RSS</div>
+        </div>
+        <div class="search" role="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2"/></svg>
+          <input id="searchInput" placeholder="搜索 标题/摘要（/ 快捷键）" aria-label="搜索" />
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="btnAddFeed" title="添加订阅">➕ 添加</button>
+          <button class="btn" id="btnRefreshAll" title="刷新全部">🔄 刷新</button>
+          <div class="row">
+            <button class="btn" id="btnSettings" title="设置">⚙️ 设置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <aside class="panel sidebar" aria-label="侧边栏">
+          <div class="section-title">智能</div>
+          <ul class="smart-list" id="smartList">
+            <li class="smart-item active" data-filter="all"><span>全部</span><span class="count" id="countAll">0</span></li>
+            <li class="smart-item" data-filter="unread"><span>未读</span><span class="count" id="countUnread">0</span></li>
+            <li class="smart-item" data-filter="starred"><span>收藏</span><span class="count" id="countStarred">0</span></li>
+          </ul>
+          <div class="section-title">订阅</div>
+          <ul class="feed-list" id="feedList"></ul>
+        </aside>
+
+        <section class="panel list" aria-label="文章列表">
+          <div class="list-header">
+            <div id="listTitle">全部</div>
+            <div class="row">
+              <button class="btn" id="btnMarkAllRead">全部已读</button>
+            </div>
+          </div>
+          <div class="items" id="items"></div>
+        </section>
+
+        <section class="panel detail" aria-label="详情">
+          <div class="detail-header">
+            <div>
+              <h1 class="detail-title" id="detailTitle">选择左侧文章查看</h1>
+              <div class="detail-meta" id="detailMeta"></div>
+            </div>
+            <div class="detail-actions">
+              <a class="btn" id="btnOpen" href="#" target="_blank" rel="noopener">打开原文</a>
+              <button class="btn" id="btnToggleRead">标记已读</button>
+              <button class="btn" id="btnToggleStar">收藏</button>
+            </div>
+          </div>
+          <div class="detail-body" id="detailBody">
+            <div class="empty">还没有选择文章</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalAdd">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+        <h3 id="addTitle">添加订阅</h3>
+        <div class="field"><label for="addUrl">Feed URL（支持 RSS/Atom/JSON Feed）</label><input class="input" id="addUrl" placeholder="https://example.com/feed.xml" /></div>
+        <div class="row">
+          <button class="btn" id="addCancel">取消</button>
+          <button class="btn primary" id="addConfirm">添加</button>
+        </div>
+        <div id="addHint" style="opacity:.75; font-size:12px; margin-top:8px;">若 CORS 失败，可在设置中启用代理</div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalSettings">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <h3 id="settingsTitle">设置</h3>
+        <div class="field">
+          <label class="row" for="proxyToggle"><input type="checkbox" id="proxyToggle" /> 使用 CORS 代理</label>
+          <input class="input" id="proxyPrefix" placeholder="代理前缀，如 https://r.jina.ai/http:// 或 https://api.allorigins.win/raw?url=" />
+        </div>
+        <div class="row">
+          <button class="btn" id="btnExportJson">导出数据</button>
+          <input type="file" id="fileImportJson" accept="application/json" style="display:none" />
+          <button class="btn" id="btnImportJson">导入数据</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" id="settingsClose">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      (function() {
+        "use strict";
+
+        // ---------- Simple Toast ----------
+        const toastEl = document.getElementById('toast');
+        function toast(message) {
+          toastEl.textContent = message;
+          toastEl.style.display = 'block';
+          clearTimeout(toastEl._t);
+          toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 2400);
+        }
+
+        // ---------- IndexedDB Wrapper ----------
+        const DB_NAME = 'glassrss';
+        const DB_VERSION = 1;
+        let dbPromise;
+        function openDB() {
+          if (dbPromise) return dbPromise;
+          dbPromise = new Promise((resolve, reject) => {
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
+            req.onupgradeneeded = (ev) => {
+              const db = req.result;
+              if (!db.objectStoreNames.contains('feeds')) {
+                const s = db.createObjectStore('feeds', { keyPath: 'url' });
+                s.createIndex('by_title', 'title');
+              }
+              if (!db.objectStoreNames.contains('items')) {
+                const s = db.createObjectStore('items', { keyPath: 'id' });
+                s.createIndex('by_feed', 'feedUrl');
+                s.createIndex('by_published', 'publishedAt');
+                s.createIndex('by_read', 'read');
+                s.createIndex('by_starred', 'starred');
+              }
+              if (!db.objectStoreNames.contains('state')) {
+                db.createObjectStore('state', { keyPath: 'k' });
+              }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+          });
+          return dbPromise;
+        }
+        function tx(storeNames, mode = 'readonly') { return openDB().then(db => db.transaction(storeNames, mode)); }
+        async function idbGet(store, key) { const t = await tx([store]); return new Promise((res, rej) => { const r = t.objectStore(store).get(key); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function idbPut(store, val) { const t = await tx([store], 'readwrite'); return new Promise((res, rej) => { const r = t.objectStore(store).put(val); r.onsuccess = () => res(true); r.onerror = () => rej(r.error); }); }
+        async function idbDel(store, key) { const t = await tx([store], 'readwrite'); return new Promise((res, rej) => { const r = t.objectStore(store).delete(key); r.onsuccess = () => res(true); r.onerror = () => rej(r.error); }); }
+        async function idbAll(store) { const t = await tx([store]); return new Promise((res, rej) => { const r = t.objectStore(store).getAll(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); }); }
+        async function idbWhereIndex(store, index, query) {
+          const t = await tx([store]);
+          const s = t.objectStore(store).index(index);
+          return new Promise((res, rej) => {
+            const out = []; const req = s.openCursor(query);
+            req.onsuccess = () => { const c = req.result; if (c) { out.push(c.value); c.continue(); } else res(out); };
+            req.onerror = () => rej(req.error);
+          });
+        }
+
+        // ---------- State ----------
+        const state = {
+          currentFilter: { type: 'all', feedUrl: null },
+          searchTerm: '',
+          selectedItemId: null,
+          settings: { useProxy: false, proxyPrefix: '' },
+        };
+        async function loadSettings() {
+          const s = await idbGet('state', 'settings');
+          if (s && s.value) Object.assign(state.settings, s.value);
+          document.getElementById('proxyToggle').checked = !!state.settings.useProxy;
+          document.getElementById('proxyPrefix').value = state.settings.proxyPrefix || '';
+        }
+        function saveSettings() { return idbPut('state', { k: 'settings', value: state.settings }); }
+
+        // ---------- Utilities ----------
+        function normalizeUrl(url) { try { return new URL(url, location.href).toString(); } catch(e) { return url; } }
+        function sha1(str) { // light hash
+          let h1 = 0x9e3779b1, h2 = 0x85ebca6b;
+          for (let i = 0; i < str.length; i++) { h1 = (h1 ^ str.charCodeAt(i)) * 2654435761 >>> 0; h2 = (h2 ^ str.charCodeAt(i)) * 2246822519 >>> 0; }
+          return (h1.toString(16) + h2.toString(16)).slice(0, 24);
+        }
+        function fmtDate(d) { try { const dt = new Date(d); return isNaN(dt) ? '' : dt.toLocaleString(); } catch(e) { return ''; } }
+        function textOf(el, sels) { for (const s of sels) { const n = el.querySelector(s); if (n && (n.textContent || '').trim()) return n.textContent.trim(); } return ''; }
+        function htmlOf(el, sels) { for (const s of sels) { const n = el.querySelector(s); if (n && (n.innerHTML || '').trim()) return n.innerHTML.trim(); } return ''; }
+
+        // ---------- Fetch with optional CORS proxy ----------
+        async function fetchText(url) {
+          const u = normalizeUrl(url);
+          const useProxy = state.settings.useProxy && state.settings.proxyPrefix;
+          const finalUrl = useProxy ? state.settings.proxyPrefix + u : u;
+          const res = await fetch(finalUrl, { headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, application/json;q=0.9, text/xml;q=0.8, */*;q=0.1' } });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return await res.text();
+        }
+
+        // ---------- Parsers: RSS / Atom / JSON Feed ----------
+        function parseFeed(text, url) {
+          const t = text.trim();
+          if (t.startsWith('{')) {
+            return parseJSONFeed(t, url);
+          } else {
+            const doc = new DOMParser().parseFromString(t, 'application/xml');
+            const root = (doc.documentElement && doc.documentElement.nodeName || '').toLowerCase();
+            if (root === 'rss' || root === 'rdf' || root === 'rdf:rdf') return parseRSS(doc, url);
+            if (root === 'feed') return parseAtom(doc, url);
+            // fallback: try detect
+            return parseRSS(doc, url);
+          }
+        }
+        function parseRSS(doc, url) {
+          const ch = doc.querySelector('channel');
+          const title = ch ? textOf(ch, ['title']) : textOf(doc, ['title']);
+          const siteLink = ch ? textOf(ch, ['link']) : '';
+          const items = Array.from(doc.querySelectorAll('item')).map(it => {
+            const link = textOf(it, ['link', 'guid']);
+            const guid = textOf(it, ['guid']) || link;
+            const title = textOf(it, ['title']);
+            const author = textOf(it, ['author', 'dc\:creator']);
+            const publishedAt = textOf(it, ['pubDate', 'dc\:date']);
+            const summary = textOf(it, ['description']);
+            const content = htmlOf(it, ['content', 'content\:encoded', 'description']);
+            let enclosure = null;
+            const enc = it.querySelector('enclosure');
+            if (enc) enclosure = { url: enc.getAttribute('url'), type: enc.getAttribute('type'), length: enc.getAttribute('length') };
+            const id = guid || link || sha1((title||'') + (publishedAt||''));
+            return { id, title, link, summary, content, author, publishedAt, feedUrl: url, enclosure };
+          });
+          return { feed: { url, title: title || siteLink || url, site: siteLink || url }, items };
+        }
+        function parseAtom(doc, url) {
+          const title = textOf(doc, ['feed>title']);
+          const siteLink = (function(){ const l = doc.querySelector('feed>link[rel="alternate"]'); return l ? (l.getAttribute('href')||'') : ''; })();
+          const items = Array.from(doc.querySelectorAll('entry')).map(it => {
+            const linkEl = it.querySelector('link[rel="alternate"]') || it.querySelector('link:not([rel])') || it.querySelector('link');
+            const link = linkEl ? (linkEl.getAttribute('href')||'') : '';
+            const guid = textOf(it, ['id']);
+            const title = textOf(it, ['title']);
+            const author = textOf(it, ['author>name']);
+            const publishedAt = textOf(it, ['updated', 'published']);
+            const summary = textOf(it, ['summary']);
+            const content = htmlOf(it, ['content', 'summary']);
+            const id = guid || link || sha1((title||'') + (publishedAt||''));
+            return { id, title, link, summary, content, author, publishedAt, feedUrl: url };
+          });
+          return { feed: { url, title: title || siteLink || url, site: siteLink || url }, items };
+        }
+        function parseJSONFeed(text, url) {
+          let obj = {};
+          try { obj = JSON.parse(text); } catch(e) { obj = {}; }
+          const title = obj.title || obj.home_page_url || url;
+          const site = obj.home_page_url || url;
+          const items = (obj.items || []).map(it => {
+            const link = it.url || it.external_url || '';
+            const id = it.id || link || sha1((it.title||'') + (it.date_published||''));
+            return {
+              id, title: it.title || '', link,
+              summary: (it.summary || ''), content: (it.content_html || it.content_text || ''),
+              author: it.author && (it.author.name || it.author) || '',
+              publishedAt: it.date_published || it.date_modified || '',
+              feedUrl: url
+            };
+          });
+          return { feed: { url, title, site }, items };
+        }
+
+        // ---------- Core: Add/Refresh Feed ----------
+        async function addFeed(url) {
+          const u = normalizeUrl(url);
+          try {
+            const text = await fetchText(u);
+            const parsed = parseFeed(text, u);
+            await idbPut('feeds', { url: u, title: parsed.feed.title, site: parsed.feed.site, lastFetched: Date.now() });
+            let newCount = 0;
+            for (const it of parsed.items) {
+              const existing = await idbGet('items', it.id);
+              if (!existing) { await idbPut('items', Object.assign({ read: false, starred: false }, it)); newCount++; }
+            }
+            toast(`添加成功：${parsed.feed.title}（新项 ${newCount}）`);
+            await renderAll();
+          } catch (e) {
+            console.error(e);
+            toast('添加失败：' + (e.message || e));
+          }
+        }
+        async function refreshFeed(url) {
+          const u = normalizeUrl(url);
+          try {
+            const text = await fetchText(u);
+            const parsed = parseFeed(text, u);
+            await idbPut('feeds', { url: u, title: parsed.feed.title, site: parsed.feed.site, lastFetched: Date.now() });
+            let newCount = 0;
+            for (const it of parsed.items) {
+              const existing = await idbGet('items', it.id);
+              if (!existing) { await idbPut('items', Object.assign({ read: false, starred: false }, it)); newCount++; }
+            }
+            toast(`已刷新：${parsed.feed.title}（新项 ${newCount}）`);
+            await renderAll();
+          } catch (e) {
+            console.error(e);
+            toast('刷新失败：' + (e.message || e));
+          }
+        }
+        async function refreshAll() {
+          const feeds = await idbAll('feeds');
+          for (const f of feeds) { await refreshFeed(f.url); }
+        }
+
+        // ---------- Rendering ----------
+        const elFeedList = document.getElementById('feedList');
+        const elItems = document.getElementById('items');
+        const elListTitle = document.getElementById('listTitle');
+        const elCountAll = document.getElementById('countAll');
+        const elCountUnread = document.getElementById('countUnread');
+        const elCountStarred = document.getElementById('countStarred');
+        const elDetailTitle = document.getElementById('detailTitle');
+        const elDetailMeta = document.getElementById('detailMeta');
+        const elDetailBody = document.getElementById('detailBody');
+        const elBtnOpen = document.getElementById('btnOpen');
+
+        async function renderSidebar() {
+          const feeds = await idbAll('feeds');
+          const items = await idbAll('items');
+          const unread = items.filter(it => !it.read);
+          const starred = items.filter(it => it.starred);
+          elCountAll.textContent = String(items.length);
+          elCountUnread.textContent = String(unread.length);
+          elCountStarred.textContent = String(starred.length);
+
+          const activeUrl = state.currentFilter.type === 'feed' ? state.currentFilter.feedUrl : null;
+          elFeedList.innerHTML = '';
+          feeds.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+          for (const f of feeds) {
+            const countUnread = items.filter(it => it.feedUrl === f.url && !it.read).length;
+            const li = document.createElement('li');
+            li.className = 'feed-item' + (activeUrl === f.url ? ' active' : '');
+            li.dataset.url = f.url;
+            li.innerHTML = `<span>${escapeHtml(f.title || f.url)}</span><span class="count">${countUnread}</span>`;
+            li.addEventListener('click', () => { state.currentFilter = { type: 'feed', feedUrl: f.url }; state.selectedItemId = null; renderAll(); });
+            li.addEventListener('contextmenu', (e) => { e.preventDefault(); showFeedContextMenu(f, li); });
+            elFeedList.appendChild(li);
+          }
+        }
+        function showFeedContextMenu(feed, anchorEl) {
+          const menu = document.createElement('div');
+          Object.assign(menu.style, { position:'fixed', zIndex: 80, background:'var(--glass-bg)', boxShadow:'var(--shadow)', borderRadius:'12px', padding:'6px', backdropFilter:'blur(var(--blur))' });
+          menu.innerHTML = `
+            <button class="btn" style="width:100%" data-act="refresh">刷新</button>
+            <button class="btn danger" style="width:100%" data-act="remove">删除订阅</button>
+          `;
+          document.body.appendChild(menu);
+          const rect = anchorEl.getBoundingClientRect();
+          menu.style.left = rect.right + 6 + 'px';
+          menu.style.top = rect.top + 'px';
+          const close = () => { menu.remove(); document.removeEventListener('click', close, { once:true }); };
+          document.addEventListener('click', close, { once:true });
+          menu.addEventListener('click', async (e) => {
+            const act = e.target && e.target.getAttribute('data-act');
+            if (act === 'refresh') await refreshFeed(feed.url);
+            if (act === 'remove') { await idbDel('feeds', feed.url); const all = await idbAll('items'); for (const it of all) if (it.feedUrl === feed.url) await idbDel('items', it.id); state.currentFilter = { type:'all', feedUrl:null }; await renderAll(); toast('已删除订阅'); }
+            close();
+          });
+        }
+
+        function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+        function snippet(html, len=160) {
+          const div = document.createElement('div');
+          div.innerHTML = html || '';
+          const text = (div.textContent || div.innerText || '').trim();
+          return text.length > len ? text.slice(0, len) + '…' : text;
+        }
+
+        async function queryItems() {
+          const all = await idbAll('items');
+          let list = all;
+          const f = state.currentFilter;
+          if (f.type === 'feed' && f.feedUrl) list = list.filter(it => it.feedUrl === f.feedUrl);
+          if (f.type === 'unread') list = list.filter(it => !it.read);
+          if (f.type === 'starred') list = list.filter(it => it.starred);
+          if (state.searchTerm) {
+            const q = state.searchTerm.toLowerCase();
+            list = list.filter(it => (it.title||'').toLowerCase().includes(q) || (it.summary||'').toLowerCase().includes(q) || snippet(it.content||'').toLowerCase().includes(q));
+          }
+          list.sort((a,b) => new Date(b.publishedAt||0) - new Date(a.publishedAt||0));
+          return list;
+        }
+        async function renderItems() {
+          const list = await queryItems();
+          elItems.innerHTML = '';
+          if (!list.length) {
+            elItems.innerHTML = '<div class="empty">暂无内容</div>';
+            return;
+          }
+          for (const it of list) {
+            const div = document.createElement('div');
+            div.className = 'item' + (it.read ? '' : ' unread');
+            div.dataset.id = it.id;
+            div.innerHTML = `
+              <div class="title">${escapeHtml(it.title || '(无标题)')}</div>
+              <div class="meta"><span>${fmtDate(it.publishedAt)}</span><span class="badge">${new URL(it.feedUrl).host}</span>${it.starred?'<span>★</span>':''}</div>
+              <div class="snippet">${escapeHtml(snippet(it.summary || it.content || ''))}</div>
+            `;
+            div.addEventListener('click', () => { selectItem(it.id); });
+            elItems.appendChild(div);
+          }
+        }
+
+        async function selectItem(id) {
+          state.selectedItemId = id;
+          const it = await idbGet('items', id);
+          if (!it) return;
+          elDetailTitle.textContent = it.title || '(无标题)';
+          elDetailMeta.textContent = `${fmtDate(it.publishedAt)} · ${new URL(it.feedUrl).host}${it.author? ' · ' + it.author : ''}`;
+          elBtnOpen.href = it.link || it.feedUrl;
+          const safe = sanitizeHtml(it.content || it.summary || '');
+          elDetailBody.innerHTML = safe || '<div class="empty">无内容</div>';
+          if (!it.read) { it.read = true; await idbPut('items', it); await renderSidebar(); await renderItems(); }
+        }
+
+        function sanitizeHtml(html) {
+          // extremely small sanitizer: strip scripts/styles/iframes/on* attributes
+          const div = document.createElement('div');
+          div.innerHTML = html;
+          const rm = div.querySelectorAll('script, style, iframe, object, embed, link'); rm.forEach(n => n.remove());
+          const walk = (node) => {
+            if (node.nodeType === 1) {
+              const attrs = Array.from(node.attributes);
+              for (const a of attrs) { if (a.name.startsWith('on') || a.name === 'srcdoc') node.removeAttribute(a.name); }
+            }
+            node.childNodes && node.childNodes.forEach(walk);
+          };
+          walk(div);
+          return div.innerHTML;
+        }
+
+        // ---------- Actions ----------
+        document.getElementById('btnAddFeed').addEventListener('click', () => showModal('modalAdd'));
+        document.getElementById('addCancel').addEventListener('click', () => hideModal('modalAdd'));
+        document.getElementById('addConfirm').addEventListener('click', async () => {
+          const url = document.getElementById('addUrl').value.trim(); if (!url) return;
+          hideModal('modalAdd'); await addFeed(url); document.getElementById('addUrl').value = '';
+        });
+        document.getElementById('btnRefreshAll').addEventListener('click', () => refreshAll());
+        document.getElementById('btnMarkAllRead').addEventListener('click', async () => { const items = await queryItems(); for (const it of items) { if (!it.read) { it.read = true; await idbPut('items', it); } } toast('已标记全部为已读'); await renderSidebar(); await renderItems(); });
+
+        document.getElementById('btnSettings').addEventListener('click', () => showModal('modalSettings'));
+        document.getElementById('settingsClose').addEventListener('click', () => hideModal('modalSettings'));
+        document.getElementById('proxyToggle').addEventListener('change', (e) => { state.settings.useProxy = e.target.checked; saveSettings(); });
+        document.getElementById('proxyPrefix').addEventListener('input', (e) => { state.settings.proxyPrefix = e.target.value.trim(); saveSettings(); });
+
+        document.getElementById('btnExportJson').addEventListener('click', async () => {
+          const data = { feeds: await idbAll('feeds'), items: await idbAll('items'), settings: state.settings };
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'glassrss-backup.json'; a.click(); URL.revokeObjectURL(a.href);
+        });
+        document.getElementById('btnImportJson').addEventListener('click', () => document.getElementById('fileImportJson').click());
+        document.getElementById('fileImportJson').addEventListener('change', async (e) => {
+          const f = e.target.files[0]; if (!f) return; try {
+            const text = await f.text(); const data = JSON.parse(text);
+            if (Array.isArray(data.feeds)) for (const x of data.feeds) await idbPut('feeds', x);
+            if (Array.isArray(data.items)) for (const x of data.items) await idbPut('items', x);
+            if (data.settings) { Object.assign(state.settings, data.settings); await saveSettings(); await loadSettings(); }
+            toast('导入完成'); await renderAll();
+          } catch(err) { toast('导入失败：' + (err.message||err)); }
+        });
+
+        document.getElementById('btnToggleRead').addEventListener('click', async () => { if (!state.selectedItemId) return; const it = await idbGet('items', state.selectedItemId); if (!it) return; it.read = !it.read; await idbPut('items', it); toast(it.read?'已读':'未读'); await renderSidebar(); await renderItems(); });
+        document.getElementById('btnToggleStar').addEventListener('click', async () => { if (!state.selectedItemId) return; const it = await idbGet('items', state.selectedItemId); if (!it) return; it.starred = !it.starred; await idbPut('items', it); toast(it.starred?'已收藏':'取消收藏'); await renderSidebar(); await renderItems(); });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => { state.searchTerm = e.target.value.trim(); renderItems(); });
+        document.getElementById('smartList').addEventListener('click', (e) => {
+          const li = e.target.closest('li'); if (!li) return;
+          document.querySelectorAll('.smart-item').forEach(n => n.classList.remove('active'));
+          li.classList.add('active');
+          const f = li.getAttribute('data-filter');
+          if (f === 'all') state.currentFilter = { type: 'all', feedUrl: null };
+          if (f === 'unread') state.currentFilter = { type: 'unread', feedUrl: null };
+          if (f === 'starred') state.currentFilter = { type: 'starred', feedUrl: null };
+          elListTitle.textContent = li.firstChild.textContent.trim();
+          state.selectedItemId = null;
+          renderAll();
+        });
+
+        // ---------- Keyboard Shortcuts ----------
+        document.addEventListener('keydown', async (e) => {
+          if (e.key === '/' && document.activeElement !== document.getElementById('searchInput')) {
+            e.preventDefault(); document.getElementById('searchInput').focus(); return;
+          }
+          const listNodes = Array.from(document.querySelectorAll('.items .item'));
+          if (!listNodes.length) return;
+          const idx = Math.max(0, listNodes.findIndex(n => n.dataset.id === state.selectedItemId));
+          if (e.key === 'j') { e.preventDefault(); const n = listNodes[Math.min(idx + 1, listNodes.length - 1)]; n && n.click(); n && n.scrollIntoView({ block: 'nearest' }); }
+          if (e.key === 'k') { e.preventDefault(); const n = listNodes[Math.max(idx - 1, 0)]; n && n.click(); n && n.scrollIntoView({ block: 'nearest' }); }
+          if (e.key === 'o') { const it = await idbGet('items', state.selectedItemId); if (it && it.link) window.open(it.link, '_blank', 'noopener'); }
+          if (e.key === 'm') { const it = await idbGet('items', state.selectedItemId); if (it) { it.read = !it.read; await idbPut('items', it); await renderSidebar(); await renderItems(); } }
+          if (e.key === 'f') { const it = await idbGet('items', state.selectedItemId); if (it) { it.starred = !it.starred; await idbPut('items', it); await renderSidebar(); await renderItems(); } }
+        });
+
+        // ---------- Modal helpers ----------
+        function showModal(id) { const m = document.getElementById(id); m.style.display = 'flex'; }
+        function hideModal(id) { const m = document.getElementById(id); m.style.display = 'none'; }
+
+        // ---------- Initial Render ----------
+        async function renderAll() {
+          await renderSidebar();
+          await renderItems();
+          const f = state.currentFilter;
+          if (f.type === 'all') elListTitle.textContent = '全部';
+          if (f.type === 'unread') elListTitle.textContent = '未读';
+          if (f.type === 'starred') elListTitle.textContent = '收藏';
+          if (f.type === 'feed' && f.feedUrl) {
+            const feed = await idbGet('feeds', f.feedUrl); elListTitle.textContent = feed ? (feed.title || feed.url) : '订阅';
+          }
+        }
+
+        // ---------- Bootstrap ----------
+        (async function init() {
+          await openDB();
+          await loadSettings();
+          await renderAll();
+          // Hint on first load
+          const feeds = await idbAll('feeds');
+          if (feeds.length === 0) toast('点击“添加”开始订阅。若失败，尝试设置里开启代理');
+        })();
+      })();
+    </script>
+  </body>
+  </html>
+
+
