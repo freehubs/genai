@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字印刷品风格页面生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#1f2937',
+                        accent: '#dc2626'
+                    },
+                    fontFamily: {
+                        'noto': ['Noto Serif SC', 'serif'],
+                        'poppins': ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #f8fafc;
+            letter-spacing: -0.01em;
+        }
+        .english {
+            font-family: 'Poppins', sans-serif;
+        }
+        .hollow-text {
+            -webkit-text-stroke: 3px #dc2626;
+            color: transparent;
+            font-weight: 900;
+        }
+        .card-gradient {
+            background: linear-gradient(to bottom right, rgba(220, 38, 38, 0.08), transparent);
+        }
+        .compact * + * {
+            margin-top: 0.5rem;
+        }
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, rgba(220, 38, 38, 0.4), transparent);
+        }
+        .grid-card {
+            transition: all 0.2s ease;
+        }
+        .grid-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        #jsonEditor {
+            font-family: 'Courier New', monospace;
+            min-height: 500px;
+        }
+        #previewContainer {
+            overflow-y: auto;
+            height: 600px;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            width: 90%;
+            height: 90%;
+            overflow: auto;
+            border-radius: 8px;
+        }
+        .close {
+            color: white;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 101;
+        }
+        .close:hover {
+            color: #ccc;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .toolbar button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .quote-section {
+            background: linear-gradient(to right, rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.7));
+        }
+        #previewIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-black text-gray-900">数字印刷品风格页面生成器</h1>
+            <p class="text-lg text-gray-600 mt-2">输入JSON数据，快速生成符合"数字时代的印刷品"设计风格的页面</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- JSON编辑器 -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4">JSON 数据输入</h2>
+                <textarea id="jsonEditor" class="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"></textarea>
+                <div class="mt-4 flex justify-between">
+                    <button id="resetBtn" class="px-4 py-2 bg-gray-500 text-white rounded-lg english font-medium flex items-center">
+                        <i class="fas fa-redo mr-2"></i> 重置
+                    </button>
+                    <button id="generateBtn" class="px-6 py-2 bg-accent text-white rounded-lg english font-medium flex items-center">
+                        <i class="fas fa-cog mr-2"></i> 生成页面
+                    </button>
+                </div>
+            </div>
+
+            <!-- 预览区域 -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4">实时预览</h2>
+                <div class="toolbar flex justify-end mb-2">
+                    <button id="fullscreenBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg english font-medium flex items-center opacity-0 pointer-events-none">
+                        <i class="fas fa-expand mr-2"></i> 全屏预览
+                    </button>
+                    <button id="downloadBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg english font-medium flex items-center opacity-0 pointer-events-none">
+                        <i class="fas fa-download mr-2"></i> 下载HTML
+                    </button>
+                </div>
+                <div id="previewContainer" class="border border-gray-300 rounded-lg p-4">
+                    <p class="text-gray-500 text-center py-10">预览将在此处显示...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全屏预览模态框 -->
+        <div id="previewModal" class="modal">
+            <span class="close">&times;</span>
+            <div class="modal-content">
+                <iframe id="previewIframe"></iframe>
+            </div>
+        </div>
+
+        <!-- 示例JSON -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">JSON 数据结构示例</h2>
+            <pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto">
+{
+  "title": "心理账户",
+  "subtitle": "Mental Accounting",
+  "publishInfo": {
+    "date": "2025年8月",
+    "category": "行为经济学"
+  },
+  "visualAnchor": {
+    "letter": "M",
+    "description": "Money is not fungible in our minds"
+  },
+  "themeColor": "#16a34a",
+  "sections": {
+    "definition": {
+      "title": "定义",
+      "content": "心理账户是人们在心理上对结果（尤其是经济结果）的编码、分类和估价的过程，它揭示了人们在进行财富决策时的心理认知过程。"
+    },
+    "attributes": {
+      "title": "属性和特征",
+      "items": [
+        "非替代性：不同心理账户之间的财富不能相互替代",
+        "特定运算规则：心理账户的收益与损失核算遵循前景理论的价值函数特征",
+        "标签效应：人们会根据金钱的来源和支出不同分别设立账户，实现\"专款专用\""
+      ]
+    },
+    "examples": {
+      "title": "例子和反例子",
+      "examples": [
+        "人们会把工资视为日常支出的来源，而将奖金或礼金视为额外的收入"
+      ],
+      "counterexamples": [
+        "专业投资者或经过财务培训的人士能够更好地认识金钱的可替代性"
+      ]
+    },
+    "applications": {
+      "title": "应用场景",
+      "items": [
+        {
+          "icon": "shopping-cart",
+          "title": "消费决策",
+          "description": "解释\"标签效应\"、\"预算效应\"和\"价格幻觉\"等消费行为异象"
+        },
+        {
+          "icon": "chart-line",
+          "title": "金融投资",
+          "description": "解释\"处置效应\"等投资者非理性行为"
+        }
+      ]
+    },
+    "comparisons": {
+      "title": "比较和联系",
+      "relatedConcepts": [
+        {"name": "前景理论", "english": "Foundation Theory"},
+        {"name": "损失厌恶", "english": "Loss Aversion"}
+      ],
+      "contrastConcepts": [
+        {"name": "金钱观念", "english": "非替代性 vs 可替代性"},
+        {"name": "决策基础", "english": "心理感知 vs 理性计算"}
+      ]
+    },
+    "summary": {
+      "title": "总结和概括",
+      "corePoints": [
+        "心理账户揭示了人们如何在心理上对经济结果进行分类和评估",
+        "金钱在心理上不可替代，不同来源和用途的资金被赋予不同价值"
+      ],
+      "practicalSignificance": [
+        "帮助理解个人和组织的非理性经济行为",
+        "为市场营销和价格策略提供心理学依据"
+      ]
+    },
+    "timeline": {
+      "title": "发展时间线",
+      "events": [
+        {"year": "1980", "title": "概念提出", "description": "塞勒首次提出\"心理账户\"概念"},
+        {"year": "1985", "title": "理论形成", "description": "塞勒发表\"心理账户与消费者行为选择\"一文"}
+      ]
+    }
+  },
+  "quote": {
+    "text": "人们对得失的判断取决于参考点，而痛苦感比快乐感更强烈。",
+    "author": "RICHARD THALER, NOBEL LAUREATE"
+  },
+  "stats": [
+    {"value": "88%", "label": "丢失现金后仍会购票观影的比例"},
+    {"value": "46%", "label": "丢失门票后再次购票的比例"},
+    {"value": "2017", "label": "塞勒获诺贝尔经济学奖年份"}
+  ],
+  "footer": {
+    "title": "行为经济学洞察系列",
+    "description": "心理账户只是行为经济学的起点。探索更多人类决策的奥秘，了解我们如何在实际中做出选择。",
+    "buttonText": "探索更多主题"
+  }
+}</pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonEditor = document.getElementById('jsonEditor');
+            const generateBtn = document.getElementById('generateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const previewContainer = document.getElementById('previewContainer');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const previewModal = document.getElementById('previewModal');
+            const previewIframe = document.getElementById('previewIframe');
+            const closeModal = document.querySelector('.close');
+            
+            let currentJsonData = null;
+            
+            // 设置示例JSON
+            jsonEditor.value = document.querySelector('pre').innerText;
+            
+            // 生成页面函数
+            generateBtn.addEventListener('click', function() {
+                try {
+                    currentJsonData = JSON.parse(jsonEditor.value);
+                    const htmlContent = generatePage(currentJsonData);
+                    previewContainer.innerHTML = htmlContent;
+                    
+                    // 启用功能按钮
+                    fullscreenBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    downloadBtn.classList.remove('opacity-0', 'pointer-events-none');
+                } catch (e) {
+                    alert('JSON格式错误: ' + e.message);
+                }
+            });
+            
+            // 重置按钮
+            resetBtn.addEventListener('click', function() {
+                jsonEditor.value = document.querySelector('pre').innerText;
+                previewContainer.innerHTML = '<p class="text-gray-500 text-center py-10">预览将在此处显示...</p>';
+                
+                // 禁用功能按钮
+                fullscreenBtn.classList.add('opacity-0', 'pointer-events-none');
+                downloadBtn.classList.add('opacity-0', 'pointer-events-none');
+            });
+            
+            // 全屏预览
+            fullscreenBtn.addEventListener('click', function() {
+                if (!currentJsonData) return;
+                
+                const fullHTML = generateFullHTML(currentJsonData);
+                const blob = new Blob([fullHTML], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                previewIframe.src = url;
+                previewModal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            });
+            
+            // 关闭模态框
+            closeModal.addEventListener('click', function() {
+                previewModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                URL.revokeObjectURL(previewIframe.src);
+                previewIframe.src = '';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === previewModal) {
+                    previewModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    URL.revokeObjectURL(previewIframe.src);
+                    previewIframe.src = '';
+                }
+            });
+            
+            // 下载HTML
+            downloadBtn.addEventListener('click', function() {
+                if (!currentJsonData) return;
+                
+                const fullHTML = generateFullHTML(currentJsonData);
+                const blob = new Blob([fullHTML], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'digital-print-page.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            // 生成完整HTML文档
+            function generateFullHTML(data) {
+                return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${data.title || '数字印刷品风格页面'}</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #f8fafc;
+            letter-spacing: -0.01em;
+        }
+        .english {
+            font-family: 'Poppins', sans-serif;
+        }
+        .hollow-text {
+            -webkit-text-stroke: 3px ${data.themeColor || '#dc2626'};
+            color: transparent;
+            font-weight: 900;
+        }
+        .card-gradient {
+            background: linear-gradient(to bottom right, ${hexToRgba(data.themeColor || '#dc2626', 0.08)}, transparent);
+        }
+        .compact * + * {
+            margin-top: 0.5rem;
+        }
+        .section-title {
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, ${hexToRgba(data.themeColor || '#dc2626', 0.4)}, transparent);
+        }
+        .grid-card {
+            transition: all 0.2s ease;
+        }
+        .grid-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .quote-section {
+            background: linear-gradient(to right, ${hexToRgba(data.themeColor || '#2563eb', 0.9)}, ${hexToRgba(data.themeColor || '#2563eb', 0.7)});
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    ${generatePage(data)}
+</body>
+</html>`;
+            }
+            
+            // 辅助函数：十六进制颜色转RGBA
+            function hexToRgba(hex, alpha) {
+                if (!hex) return `rgba(220, 38, 38, ${alpha})`;
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+            
+            // 页面生成函数
+            function generatePage(data) {
+                // 设置主题色
+                const themeColor = data.themeColor || '#dc2626';
+                
+                // 生成HTML内容
+                return `
+                    <div class="max-w-7xl mx-auto px-4 py-8">
+                        <!-- 页头 -->
+                        <header class="mb-10 border-b-4 pb-4" style="border-color: ${themeColor}">
+                            <h1 class="text-5xl md:text-6xl font-black text-gray-900">${data.title || '标题'}</h1>
+                            <div class="flex flex-wrap justify-between items-baseline mt-2">
+                                <h2 class="text-2xl md:text-3xl font-bold text-gray-700">${data.subtitle || '副标题'}</h2>
+                                <div class="english text-lg text-gray-500 font-medium">
+                                    <span><i class="fas fa-calendar-alt mr-1"></i>${data.publishInfo?.date || '日期'}</span>
+                                    <span class="mx-2">|</span>
+                                    <span><i class="fas fa-book-open mr-1"></i>${data.publishInfo?.category || '分类'}</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <!-- 主内容区 -->
+                        <main class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-16">
+                            <!-- 视觉锚点区 -->
+                            <div class="md:col-span-4 flex justify-center items-start">
+                                <div class="sticky top-6 text-center py-6 px-4 w-full">
+                                    <div class="hollow-text text-[280px] leading-none">${data.visualAnchor?.letter || 'A'}</div>
+                                    <p class="english text-lg font-medium text-gray-600 mt-4">${data.visualAnchor?.description || '描述'}</p>
+                                </div>
+                            </div>
+
+                            <!-- 核心信息区 -->
+                            <div class="md:col-span-8 grid grid-cols-1 lg:grid-cols-2 gap-6 compact">
+                                <!-- 定义 -->
+                                ${data.sections?.definition ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
+                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.definition.title}</h3>
+                                    <p class="text-lg font-semibold">${data.sections.definition.content}</p>
+                                    <div class="mt-4 flex items-center text-sm font-medium" style="color: ${themeColor}">
+                                        <i class="fas fa-lightbulb mr-2"></i>
+                                        <span>核心观点：人们会为不同来源和用途的资金建立不同的心理账户</span>
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                <!-- 属性和特征 -->
+                                ${data.sections?.attributes ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
+                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.attributes.title}</h3>
+                                    <ul class="space-y-2 text-gray-700">
+                                        ${data.sections.attributes.items.map(item => `
+                                            <li class="flex items-start"><i class="fas fa-angle-right mt-1 mr-2" style="color: ${themeColor}"></i> <span>${item}</span></li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                ` : ''}
+
+                                <!-- 例子和反例子 -->
+                                ${data.sections?.examples ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
+                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.examples.title}</h3>
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div class="bg-white p-4 rounded-lg border-l-4" style="border-color: ${themeColor}">
+                                            <h4 class="font-bold text-lg text-gray-800">例子</h4>
+                                            ${data.sections.examples.examples.map(example => `
+                                                <p class="mt-2">${example}</p>
+                                            `).join('')}
+                                        </div>
+                                        <div class="bg-white p-4 rounded-lg border-l-4 border-gray-300">
+                                            <h4 class="font-bold text-lg text-gray-800">反例子</h4>
+                                            ${data.sections.examples.counterexamples.map(counterexample => `
+                                                <p class="mt-2">${counterexample}</p>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                <!-- 应用场景 -->
+                                ${data.sections?.applications ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
+                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.applications.title}</h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        ${data.sections.applications.items.map(item => `
+                                            <div class="bg-white p-3 rounded shadow-sm">
+                                                <i class="fas fa-${item.icon} text-xl mb-2" style="color: ${themeColor}"></i>
+                                                <h4 class="font-bold">${item.title}</h4>
+                                                <p class="text-sm mt-1">${item.description}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                <!-- 比较和联系 -->
+                                ${data.sections?.comparisons ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 lg:col-span-2 grid-card">
+                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.comparisons.title}</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 class="font-bold text-lg border-b pb-2 border-gray-200">相关概念</h4>
+                                            <ul class="mt-3 space-y-2">
+                                                ${data.sections.comparisons.relatedConcepts.map(concept => `
+                                                    <li class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                        <span>${concept.name}</span>
+                                                        <span class="english text-sm font-medium" style="color: ${themeColor}">${concept.english}</span>
+                                                    </li>
+                                                `).join('')}
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-lg border-b pb-2 border-gray-200">对比概念</h4>
+                                            <ul class="mt-3 space-y-2">
+                                                ${data.sections.comparisons.contrastConcepts.map(concept => `
+                                                    <li class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                        <span>${concept.name}</span>
+                                                        <span class="english text-sm font-medium" style="color: ${themeColor}">${concept.english}</span>
+                                                    </li>
+                                                `).join('')}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </main>
+
+                        <!-- 中段分隔区 -->
+                        ${data.quote ? `
+                        <section class="text-white rounded-2xl p-8 mb-16" style="background: linear-gradient(to right, ${hexToRgba(themeColor, 0.9)}, ${hexToRgba(themeColor, 0.7)})">
+                            <div class="max-w-5xl mx-auto">
+                                <div class="text-center mb-6">
+                                    <i class="fas fa-quote-left text-3xl opacity-50"></i>
+                                </div>
+                                <blockquote class="text-2xl font-bold text-center leading-relaxed">
+                                    "${data.quote.text}"
+                                </blockquote>
+                                <div class="text-center mt-6 english font-medium" style="color: ${hexToRgba(themeColor, 0.8)}">
+                                    — ${data.quote.author}
+                                </div>
+                                ${data.stats ? `
+                                <div class="grid grid-cols-3 gap-6 mt-10 text-center">
+                                    ${data.stats.map(stat => `
+                                        <div>
+                                            <div class="text-4xl font-black">${stat.value}</div>
+                                            <div class="mt-2 font-medium">${stat.label}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                ` : ''}
+                            </div>
+                        </section>
+                        ` : ''}
+
+                        <!-- 总结和概括 -->
+                        ${data.sections?.summary ? `
+                        <section class="mb-16">
+                            <h2 class="text-3xl font-black mb-6 section-title">${data.sections.summary.title}</h2>
+                            <div class="bg-white rounded-2xl shadow-sm p-6 card-gradient">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-3">核心观点</h3>
+                                        <ul class="space-y-2 text-gray-700">
+                                            ${data.sections.summary.corePoints.map(point => `
+                                                <li class="flex items-start"><i class="fas fa-check-circle mt-1 mr-2" style="color: ${themeColor}"></i> <span>${point}</span></li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-3">实践意义</h3>
+                                        <ul class="space-y-2 text-gray-700">
+                                            ${data.sections.summary.practicalSignificance.map(point => `
+                                                <li class="flex items-start"><i class="fas fa-lightbulb mt-1 mr-2" style="color: ${themeColor}"></i> <span>${point}</span></li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        ` : ''}
+
+                        <!-- 发展时间线 -->
+                        ${data.sections?.timeline ? `
+                        <section class="mb-16">
+                            <h2 class="text-3xl font-black mb-6 section-title">${data.sections.timeline.title}</h2>
+                            <div class="relative">
+                                <div class="absolute left-4 h-full w-0.5" style="background-color: ${hexToRgba(themeColor, 0.3)}"></div>
+                                <div class="space-y-10 pl-14">
+                                    ${data.sections.timeline.events.map(event => `
+                                        <div class="relative">
+                                            <div class="absolute -left-20 english font-semibold" style="color: ${themeColor}">${event.year}</div>
+                                            <div class="absolute -left-10 top-1 w-6 h-6 rounded-full border-4 border-white" style="background-color: ${themeColor}"></div>
+                                            <h3 class="text-xl font-bold">${event.title}</h3>
+                                            <p class="text-gray-700">${event.description}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </section>
+                        ` : ''}
+
+                        <!-- 深色页脚 -->
+                        ${data.footer ? `
+                        <footer class="bg-dark text-white rounded-2xl p-10">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="text-2xl font-black mb-4">${data.footer.title}</h3>
+                                    <p class="text-gray-300">${data.footer.description}</p>
+                                    <button class="mt-6 px-6 py-3 rounded-lg english font-semibold transition-colors" style="background-color: ${themeColor}">${data.footer.buttonText} <i class="fas fa-arrow-right ml-2"></i></button>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold mb-4">订阅更新</h3>
+                                    <p class="text-gray-300 mb-4">获取最新的行为经济学研究和应用案例</p>
+                                    <div class="flex">
+                                        <input type="email" placeholder="您的电子邮箱" class="px-4 py-3 rounded-l-lg flex-grow text-dark">
+                                        <button class="px-4 py-3 rounded-r-lg english font-medium" style="background-color: ${themeColor}">订阅</button>
+                                    </div>
+                                    <div class="flex space-x-4 mt-6">
+                                        <a href="#" class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center"><i class="fab fa-weibo"></i></a>
+                                        <a href="#" class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center"><i class="fab fa-weixin"></i></a>
+                                        <a href="#" class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center"><i class="fas fa-envelope"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400 english text-sm">
+                                <p>© 2023 Behavioral Economics Insights. All rights reserved.</p>
+                            </div>
+                        </footer>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
