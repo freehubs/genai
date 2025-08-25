@@ -119,11 +119,6 @@
         .quote-section {
             background: linear-gradient(to right, rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.7));
         }
-        #previewIframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -169,13 +164,21 @@
         <div id="previewModal" class="modal">
             <span class="close">&times;</span>
             <div class="modal-content">
-                <iframe id="previewIframe"></iframe>
+                <div id="modalContent" class="p-4"></div>
             </div>
         </div>
 
         <!-- 示例JSON -->
         <div class="bg-white rounded-xl shadow-md p-6 mb-8">
             <h2 class="text-2xl font-bold mb-4">JSON 数据结构示例</h2>
+            <div class="mb-4 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                <strong>💡 数据结构更新说明：</strong><br>
+                • <code>contrastConfusion.confusions</code> 现在为对象数组，包含 <code>text</code> 和 <code>english</code> 字段<br>
+                • 支持中英文对照显示，右侧显示英文标签<br>
+                • 移除了警告图标，采用更简洁的文本布局<br>
+                • <code>coreConcept</code> 区块已移除 <code>keywords</code> 字段，仅保留定义<br>
+                • <code>cognitiveSpark</code> 区块已移除 <code>paradox</code> 字段和标题，仅保留问题且采用特殊视觉效果
+            </div>
             <pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto">
 {
   "title": "心理账户",
@@ -189,71 +192,64 @@
     "description": "Money is not fungible in our minds"
   },
   "themeColor": "#16a34a",
+  "blockConfig": {
+    "cognitiveSpark": true,
+    "coreConcept": true,
+    "mentalModel": true,
+    "signatureScenarios": true,
+    "contrastConfusion": true,
+    "memoryAnchor": true,
+    "quote": true,
+    "summary": false,
+    "timeline": false,
+    "footer": true
+  },
   "sections": {
-    "definition": {
-      "title": "定义",
-      "content": "心理账户是人们在心理上对结果（尤其是经济结果）的编码、分类和估价的过程，它揭示了人们在进行财富决策时的心理认知过程。"
+    "cognitiveSpark": {
+      "question": "为什么中了100万彩票的人，不愿意花这笔钱买房？"
     },
-    "attributes": {
-      "title": "属性和特征",
-      "items": [
-        "非替代性：不同心理账户之间的财富不能相互替代",
-        "特定运算规则：心理账户的收益与损失核算遵循前景理论的价值函数特征",
-        "标签效应：人们会根据金钱的来源和支出不同分别设立账户，实现\"专款专用\""
-      ]
+    "coreConcept": {
+      "definition": "心理账户是人们在心理上对结果（尤其是经济结果）的编码、分类和估价的过程，它揭示了人们在进行财富决策时的心理认知过程。"
     },
-    "examples": {
-      "title": "例子和反例子",
-      "examples": [
-        "人们会把工资视为日常支出的来源，而将奖金或礼金视为额外的收入"
+    "mentalModel": {
+      "mechanism": "人们会在心理上为不同来源和用途的钱建立独立的「账户」，每个账户有其特定的预算和使用规则，导致金钱失去了经济学假设的完全可替代性。",
+      "analogy": "就像水杯分隔器，看似同样的水在不同杯子里却有了不同的用途标签"
+    },
+    "signatureScenarios": [
+      {
+        "scene": "电影票实验",
+        "behavior": "当告知已丢失100元现金时，88%的人仍会购票看电影；但告知已丢失100元电影票时，只有46%的人会再次购票",
+        "result": "相同的经济损失，但心理账户分类不同，导致截然不同的决策"
+      },
+      {
+        "scene": "年终奖消费",
+        "behavior": "人们通常会将年终奖用于「奖励性」消费（如旅游、奢侈品），而不是日常生活必需品",
+        "result": "同样是收入，但心理标签的不同改变了消费决策"
+      },
+      {
+        "scene": "投资与储蓄",
+        "behavior": "一边背负高利率信用卡债务，一边进行低收益储蓄投资",
+        "result": "忽视了整体财务最优化，因为不同账户被分别管理"
+      }
+    ],
+    "contrastConfusion": {
+      "contrasts": [
+        {"name": "前景理论", "english": "Prospect Theory"},
+        {"name": "损失厌恶", "english": "Loss Aversion"},
+        {"name": "禀赋效应", "english": "Endowment Effect"},
+        {"name": "沉没成本", "english": "Sunk Cost Fallacy"}
       ],
-      "counterexamples": [
-        "专业投资者或经过财务培训的人士能够更好地认识金钱的可替代性"
+      "confusions": [
+        {"text": "误认为心理账户就是简单的预算分类", "english": "Budget Classification"},
+        {"text": "忽视心理账户对投资决策的深层影响", "english": "Investment Impact"},
+        {"text": "认为理性人不会受心理账户影响", "english": "Rational Actor"},
+        {"text": "将心理账户等同于会计账户的概念", "english": "Accounting Confusion"}
       ]
     },
-    "applications": {
-      "title": "应用场景",
-      "items": [
-        {
-          "icon": "shopping-cart",
-          "title": "消费决策",
-          "description": "解释\"标签效应\"、\"预算效应\"和\"价格幻觉\"等消费行为异象"
-        },
-        {
-          "icon": "chart-line",
-          "title": "金融投资",
-          "description": "解释\"处置效应\"等投资者非理性行为"
-        }
-      ]
-    },
-    "comparisons": {
-      "title": "比较和联系",
-      "relatedConcepts": [
-        {"name": "前景理论", "english": "Foundation Theory"},
-        {"name": "损失厌恶", "english": "Loss Aversion"}
-      ],
-      "contrastConcepts": [
-        {"name": "金钱观念", "english": "非替代性 vs 可替代性"},
-        {"name": "决策基础", "english": "心理感知 vs 理性计算"}
-      ]
-    },
-    "summary": {
-      "title": "总结和概括",
-      "corePoints": [
-        "心理账户揭示了人们如何在心理上对经济结果进行分类和评估",
-        "金钱在心理上不可替代，不同来源和用途的资金被赋予不同价值"
-      ],
-      "practicalSignificance": [
-        "帮助理解个人和组织的非理性经济行为",
-        "为市场营销和价格策略提供心理学依据"
-      ]
-    },
-    "timeline": {
-      "title": "发展时间线",
-      "events": [
-        {"year": "1980", "title": "概念提出", "description": "塞勒首次提出\"心理账户\"概念"},
-        {"year": "1985", "title": "理论形成", "description": "塞勒发表\"心理账户与消费者行为选择\"一文"}
-      ]
+    "memoryAnchor": {
+      "tips": "记住「彩票奖金买房」悖论：同样的钱，不同来源，不同心理价值",
+      "analogy": "心理账户像是钱包里的不同隔层，每层钱都有专门用途",
+      "story": "一个人中了彩票不愿买房，却愿意继续贷款买房，因为彩票钱被标记为「玩乐基金」而不是「生活必需」"
     }
   },
   "quote": {
@@ -283,10 +279,10 @@
             const fullscreenBtn = document.getElementById('fullscreenBtn');
             const downloadBtn = document.getElementById('downloadBtn');
             const previewModal = document.getElementById('previewModal');
-            const previewIframe = document.getElementById('previewIframe');
+            const modalContent = document.getElementById('modalContent');
             const closeModal = document.querySelector('.close');
             
-            let currentJsonData = null;
+            let currentGeneratedHTML = '';
             
             // 设置示例JSON
             jsonEditor.value = document.querySelector('pre').innerText;
@@ -294,15 +290,16 @@
             // 生成页面函数
             generateBtn.addEventListener('click', function() {
                 try {
-                    currentJsonData = JSON.parse(jsonEditor.value);
-                    const htmlContent = generatePage(currentJsonData);
+                    const jsonData = JSON.parse(jsonEditor.value);
+                    const htmlContent = generatePage(jsonData);
+                    currentGeneratedHTML = htmlContent;
                     previewContainer.innerHTML = htmlContent;
                     
                     // 启用功能按钮
                     fullscreenBtn.classList.remove('opacity-0', 'pointer-events-none');
                     downloadBtn.classList.remove('opacity-0', 'pointer-events-none');
                 } catch (e) {
-                    alert('JSON格式错误: ' + e.message);
+                    alert('JSON格式错误: ' + e.message + '\n\n请检查以下常见问题：\n1. 是否有多余或缺失的逗号、引号、括号？\n2. 是否所有的键和值都用英文双引号包裹？\n3. 可以使用 https://jsonlint.com/ 等工具辅助校验。\n\n错误堆栈信息：\n' + (e.stack || ''));
                 }
             });
             
@@ -318,12 +315,7 @@
             
             // 全屏预览
             fullscreenBtn.addEventListener('click', function() {
-                if (!currentJsonData) return;
-                
-                const fullHTML = generateFullHTML(currentJsonData);
-                const blob = new Blob([fullHTML], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                previewIframe.src = url;
+                modalContent.innerHTML = generateFullHTML(JSON.parse(jsonEditor.value));
                 previewModal.style.display = 'block';
                 document.body.style.overflow = 'hidden';
             });
@@ -332,8 +324,6 @@
             closeModal.addEventListener('click', function() {
                 previewModal.style.display = 'none';
                 document.body.style.overflow = 'auto';
-                URL.revokeObjectURL(previewIframe.src);
-                previewIframe.src = '';
             });
             
             // 点击模态框外部关闭
@@ -341,16 +331,13 @@
                 if (event.target === previewModal) {
                     previewModal.style.display = 'none';
                     document.body.style.overflow = 'auto';
-                    URL.revokeObjectURL(previewIframe.src);
-                    previewIframe.src = '';
                 }
             });
             
             // 下载HTML
             downloadBtn.addEventListener('click', function() {
-                if (!currentJsonData) return;
-                
-                const fullHTML = generateFullHTML(currentJsonData);
+                const jsonData = JSON.parse(jsonEditor.value);
+                const fullHTML = generateFullHTML(jsonData);
                 const blob = new Blob([fullHTML], { type: 'text/html' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -362,6 +349,30 @@
                 URL.revokeObjectURL(url);
             });
             
+            // 辅助函数：十六进制颜色转RGBA（全局定义）
+            function hexToRgba(hex, alpha) {
+                if (!hex) return `rgba(220, 38, 38, ${alpha})`;
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+
+            // 辅助函数：生成浅色版本（类似Tailwind -100效果）
+            function hexToLight(hex) {
+                if (!hex) return '#fecaca'; // 浅红色作为默认
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                
+                // 混合85%白色，15%原色（类似Tailwind -100的计算）
+                const lightR = Math.round(r * 0.15 + 255 * 0.85);
+                const lightG = Math.round(g * 0.15 + 255 * 0.85);
+                const lightB = Math.round(b * 0.15 + 255 * 0.85);
+                
+                return `rgb(${lightR}, ${lightG}, ${lightB})`;
+            }
+
             // 生成完整HTML文档
             function generateFullHTML(data) {
                 return `<!DOCTYPE html>
@@ -424,25 +435,33 @@
 </html>`;
             }
             
-            // 辅助函数：十六进制颜色转RGBA
-            function hexToRgba(hex, alpha) {
-                if (!hex) return `rgba(220, 38, 38, ${alpha})`;
-                const r = parseInt(hex.slice(1, 3), 16);
-                const g = parseInt(hex.slice(3, 5), 16);
-                const b = parseInt(hex.slice(5, 7), 16);
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-            }
-            
             // 页面生成函数
             function generatePage(data) {
                 // 设置主题色
                 const themeColor = data.themeColor || '#dc2626';
                 
+                // 默认区块显示配置
+                const defaultConfig = {
+                    cognitiveSpark: true,
+                    coreConcept: true,
+                    mentalModel: true,
+                    signatureScenarios: true,
+                    contrastConfusion: true,
+                    memoryAnchor: true,
+                    quote: true,
+                    summary: false,  // 默认隐藏
+                    timeline: false, // 默认隐藏
+                    footer: true
+                };
+                
+                // 合并用户配置与默认配置
+                const blockConfig = { ...defaultConfig, ...(data.blockConfig || {}) };
+                
                 // 生成HTML内容
                 return `
                     <div class="max-w-7xl mx-auto px-4 py-8">
                         <!-- 页头 -->
-                        <header class="mb-10 border-b-4 pb-4" style="border-color: ${themeColor}">
+                        <header class="mb-10 border-b-4 border-accent pb-4" style="border-color: ${themeColor}">
                             <h1 class="text-5xl md:text-6xl font-black text-gray-900">${data.title || '标题'}</h1>
                             <div class="flex flex-wrap justify-between items-baseline mt-2">
                                 <h2 class="text-2xl md:text-3xl font-bold text-gray-700">${data.subtitle || '副标题'}</h2>
@@ -463,106 +482,120 @@
                                     <p class="english text-lg font-medium text-gray-600 mt-4">${data.visualAnchor?.description || '描述'}</p>
                                 </div>
                             </div>
+                            <!-- 六大模块结构化展示 -->
 
-                            <!-- 核心信息区 -->
                             <div class="md:col-span-8 grid grid-cols-1 lg:grid-cols-2 gap-6 compact">
-                                <!-- 定义 -->
-                                ${data.sections?.definition ? `
-                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
-                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.definition.title}</h3>
-                                    <p class="text-lg font-semibold">${data.sections.definition.content}</p>
-                                    <div class="mt-4 flex items-center text-sm font-medium" style="color: ${themeColor}">
-                                        <i class="fas fa-lightbulb mr-2"></i>
-                                        <span>核心观点：人们会为不同来源和用途的资金建立不同的心理账户</span>
+
+                                <!-- 1. 认知引爆点 (Cognitive Spark) -->
+                                ${blockConfig.cognitiveSpark && data.sections?.cognitiveSpark ? `
+                                <div class="relative overflow-hidden rounded-2xl border-2 grid-card col-span-2 p-8 text-center" style="background: linear-gradient(135deg, ${hexToRgba(themeColor, 0.05)}, ${hexToRgba(themeColor, 0.02)}); border-color: ${hexToRgba(themeColor, 0.2)};">
+                                    <div class="absolute top-0 left-0 w-full h-1" style="background: linear-gradient(90deg, ${themeColor}, transparent);"></div>
+                                    <p class="text-3xl md:text-4xl font-black leading-tight" style="-webkit-text-stroke: 2px ${themeColor}; color: transparent; font-weight: 900;">
+                                        ${data.sections.cognitiveSpark.question}
+                                    </p>
+                                    <div class="absolute bottom-4 right-4 opacity-15">
+                                        <i class="fas fa-lightbulb text-4xl" style="color: ${themeColor};"></i>
                                     </div>
                                 </div>
                                 ` : ''}
 
-                                <!-- 属性和特征 -->
-                                ${data.sections?.attributes ? `
+                                <!-- 2. 核心概念 (Core Concept) -->
+                                ${blockConfig.coreConcept && data.sections?.coreConcept ? `
                                 <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
-                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.attributes.title}</h3>
-                                    <ul class="space-y-2 text-gray-700">
-                                        ${data.sections.attributes.items.map(item => `
-                                            <li class="flex items-start"><i class="fas fa-angle-right mt-1 mr-2" style="color: ${themeColor}"></i> <span>${item}</span></li>
-                                        `).join('')}
-                                    </ul>
+                                    <h3 class="text-2xl font-black mb-3 section-title">核心概念 <span class="english text-base font-bold ml-2">Core Concept</span></h3>
+                                    <p class="text-lg font-semibold">${data.sections.coreConcept.definition}</p>
                                 </div>
                                 ` : ''}
 
-                                <!-- 例子和反例子 -->
-                                ${data.sections?.examples ? `
+                                <!-- 3. 心智模型 (Mental Model) -->
+                                ${blockConfig.mentalModel && data.sections?.mentalModel ? `
                                 <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
-                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.examples.title}</h3>
-                                    <div class="grid grid-cols-1 gap-4">
-                                        <div class="bg-white p-4 rounded-lg border-l-4" style="border-color: ${themeColor}">
-                                            <h4 class="font-bold text-lg text-gray-800">例子</h4>
-                                            ${data.sections.examples.examples.map(example => `
-                                                <p class="mt-2">${example}</p>
-                                            `).join('')}
+                                    <h3 class="text-2xl font-black mb-3 section-title">心智模型 <span class="english text-base font-bold ml-2">Mental Model</span></h3>
+                                    <p class="text-gray-800 mb-4">${data.sections.mentalModel.mechanism}</p>
+                                    ${data.sections.mentalModel.diagram ? `
+                                        <div class="flex justify-center items-center mb-2">
+                                            <img src="${data.sections.mentalModel.diagram}" alt="流程图/类比" class="max-h-32 object-contain" />
                                         </div>
-                                        <div class="bg-white p-4 rounded-lg border-l-4 border-gray-300">
-                                            <h4 class="font-bold text-lg text-gray-800">反例子</h4>
-                                            ${data.sections.examples.counterexamples.map(counterexample => `
-                                                <p class="mt-2">${counterexample}</p>
-                                            `).join('')}
-                                        </div>
-                                    </div>
+                                    ` : ''}
+                                    ${data.sections.mentalModel.analogy ? `
+                                        <div class="text-sm text-gray-500 italic">类比：${data.sections.mentalModel.analogy}</div>
+                                    ` : ''}
                                 </div>
                                 ` : ''}
 
-                                <!-- 应用场景 -->
-                                ${data.sections?.applications ? `
-                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card">
-                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.applications.title}</h3>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        ${data.sections.applications.items.map(item => `
-                                            <div class="bg-white p-3 rounded shadow-sm">
-                                                <i class="fas fa-${item.icon} text-xl mb-2" style="color: ${themeColor}"></i>
-                                                <h4 class="font-bold">${item.title}</h4>
-                                                <p class="text-sm mt-1">${item.description}</p>
+                                <!-- 4. 典型情境 (Signature Scenarios) -->
+                                ${blockConfig.signatureScenarios && data.sections?.signatureScenarios ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card col-span-2">
+                                    <h3 class="text-2xl font-black mb-3 section-title">典型情境 <span class="english text-base font-bold ml-2">Signature Scenarios</span></h3>
+                                    <div class="space-y-4">
+                                        ${data.sections.signatureScenarios.map(scenario => `
+                                            <div class="bg-white rounded-lg p-4 border-l-4" style="border-color: ${themeColor}">
+                                                <div class="flex items-center mb-1">
+                                                    <i class="fas fa-user-circle mr-2" style="color: ${themeColor}"></i>
+                                                    <span class="font-bold">${scenario.scene}</span>
+                                                </div>
+                                                <div class="ml-6 text-gray-700 text-sm">
+                                                    <span class="font-semibold">行为：</span>${scenario.behavior}<br>
+                                                    <span class="font-semibold">结果：</span>${scenario.result}
+                                                </div>
                                             </div>
                                         `).join('')}
                                     </div>
                                 </div>
                                 ` : ''}
 
-                                <!-- 比较和联系 -->
-                                ${data.sections?.comparisons ? `
-                                <div class="card-gradient rounded-xl p-6 border border-gray-200 lg:col-span-2 grid-card">
-                                    <h3 class="text-2xl font-black mb-3 section-title">${data.sections.comparisons.title}</h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- 5A. 相似概念对比 (Similar Concepts) -->
+                                ${blockConfig.contrastConfusion && data.sections?.contrastConfusion ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card col-span-2">
+                                    <h3 class="text-2xl font-black mb-3 section-title">相似概念对比 <span class="english text-base font-bold ml-2">Similar Concepts</span></h3>
+                                    <ul class="mt-3 space-y-2">
+                                        ${data.sections.contrastConfusion.contrasts.map(item => `
+                                            <li class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                <span>${item.name}</span>
+                                                <span class="english text-sm font-medium" style="color: ${themeColor}">${item.english}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                ` : ''}
+
+                                <!-- 5B. 常见误解警示 (Common Misconceptions) -->
+                                ${blockConfig.contrastConfusion && data.sections?.contrastConfusion ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card col-span-2">
+                                    <h3 class="text-2xl font-black mb-3 section-title">常见误解警示 <span class="english text-base font-bold ml-2">Common Misconceptions</span></h3>
+                                    <ul class="mt-3 space-y-2">
+                                        ${data.sections.contrastConfusion.confusions.map(confusion => `
+                                            <li class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                <!-- <i class="fas fa-exclamation-circle mt-1 mr-2 text-accent"></i> -->
+                                                <span>${confusion.text}</span>
+                                                <span class="english text-sm font-medium" style="color: ${themeColor}">${confusion.english}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                                ` : ''}
+
+                                <!-- 6. 记忆锚点 (Memory Anchor) -->
+                                ${blockConfig.memoryAnchor && data.sections?.memoryAnchor ? `
+                                <div class="card-gradient rounded-xl p-6 border border-gray-200 grid-card col-span-2">
+                                    <h3 class="text-2xl font-black mb-3 section-title">记忆锚点 <span class="english text-base font-bold ml-2">Memory Anchor</span></h3>
+                                    <div class="flex items-start">
+                                        <i class="fas fa-anchor text-2xl mr-4" style="color: ${themeColor}"></i>
                                         <div>
-                                            <h4 class="font-bold text-lg border-b pb-2 border-gray-200">相关概念</h4>
-                                            <ul class="mt-3 space-y-2">
-                                                ${data.sections.comparisons.relatedConcepts.map(concept => `
-                                                    <li class="flex justify-between items-center border-b border-gray-100 pb-2">
-                                                        <span>${concept.name}</span>
-                                                        <span class="english text-sm font-medium" style="color: ${themeColor}">${concept.english}</span>
-                                                    </li>
-                                                `).join('')}
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-lg border-b pb-2 border-gray-200">对比概念</h4>
-                                            <ul class="mt-3 space-y-2">
-                                                ${data.sections.comparisons.contrastConcepts.map(concept => `
-                                                    <li class="flex justify-between items-center border-b border-gray-100 pb-2">
-                                                        <span>${concept.name}</span>
-                                                        <span class="english text-sm font-medium" style="color: ${themeColor}">${concept.english}</span>
-                                                    </li>
-                                                `).join('')}
-                                            </ul>
+                                            ${data.sections.memoryAnchor.tips ? `<div class="mb-2 font-semibold">${data.sections.memoryAnchor.tips}</div>` : ''}
+                                            ${data.sections.memoryAnchor.analogy ? `<div class="text-gray-600 mb-2">类比：${data.sections.memoryAnchor.analogy}</div>` : ''}
+                                            ${data.sections.memoryAnchor.story ? `<div class="text-gray-500 text-sm italic">故事：${data.sections.memoryAnchor.story}</div>` : ''}
                                         </div>
                                     </div>
                                 </div>
                                 ` : ''}
+
                             </div>
                         </main>
 
                         <!-- 中段分隔区 -->
-                        ${data.quote ? `
-                        <section class="text-white rounded-2xl p-8 mb-16" style="background: linear-gradient(to right, ${hexToRgba(themeColor, 0.9)}, ${hexToRgba(themeColor, 0.7)})">
+                        ${blockConfig.quote && data.quote ? `
+                        <section class="text-white rounded-2xl p-8 mb-16 quote-section">
                             <div class="max-w-5xl mx-auto">
                                 <div class="text-center mb-6">
                                     <i class="fas fa-quote-left text-3xl opacity-50"></i>
@@ -570,7 +603,7 @@
                                 <blockquote class="text-2xl font-bold text-center leading-relaxed">
                                     "${data.quote.text}"
                                 </blockquote>
-                                <div class="text-center mt-6 english font-medium" style="color: ${hexToRgba(themeColor, 0.8)}">
+                                <div class="text-center mt-6 english font-medium" style="color: ${hexToLight(themeColor)}">
                                     — ${data.quote.author}
                                 </div>
                                 ${data.stats ? `
@@ -588,7 +621,7 @@
                         ` : ''}
 
                         <!-- 总结和概括 -->
-                        ${data.sections?.summary ? `
+                        ${blockConfig.summary && data.sections?.summary ? `
                         <section class="mb-16">
                             <h2 class="text-3xl font-black mb-6 section-title">${data.sections.summary.title}</h2>
                             <div class="bg-white rounded-2xl shadow-sm p-6 card-gradient">
@@ -615,7 +648,7 @@
                         ` : ''}
 
                         <!-- 发展时间线 -->
-                        ${data.sections?.timeline ? `
+                        ${blockConfig.timeline && data.sections?.timeline ? `
                         <section class="mb-16">
                             <h2 class="text-3xl font-black mb-6 section-title">${data.sections.timeline.title}</h2>
                             <div class="relative">
@@ -635,8 +668,8 @@
                         ` : ''}
 
                         <!-- 深色页脚 -->
-                        ${data.footer ? `
-                        <footer class="bg-dark text-white rounded-2xl p-10">
+                        ${blockConfig.footer && data.footer ? `
+                        <footer class="text-white rounded-2xl p-10" style="background-color: #1f2937">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div>
                                     <h3 class="text-2xl font-black mb-4">${data.footer.title}</h3>
@@ -647,7 +680,7 @@
                                     <h3 class="text-xl font-bold mb-4">订阅更新</h3>
                                     <p class="text-gray-300 mb-4">获取最新的行为经济学研究和应用案例</p>
                                     <div class="flex">
-                                        <input type="email" placeholder="您的电子邮箱" class="px-4 py-3 rounded-l-lg flex-grow text-dark">
+                                        <input type="email" placeholder="您的电子邮箱" class="px-4 py-3 rounded-l-lg flex-grow text-gray-800">
                                         <button class="px-4 py-3 rounded-r-lg english font-medium" style="background-color: ${themeColor}">订阅</button>
                                     </div>
                                     <div class="flex space-x-4 mt-6">
